@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { useWalletKit } from '../hooks/useWalletKit';
+import { useAccount } from 'wagmi';
 import { TipForm } from '../components/TipForm';
 import { TipHistory } from '../components/TipHistory';
 import { TopTippers } from '../components/TopTippers';
 
 export function TipJar() {
-  const { sessions } = useWalletKit();
-  const isSignedIn = sessions.length > 0;
+  const { isConnected } = useAccount();
   const [recipientAddress, setRecipientAddress] = useState('');
 
   return (
@@ -31,7 +30,7 @@ export function TipJar() {
         </div>
       </div>
 
-      {!isSignedIn && (
+      {!isConnected && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-yellow-800">
             Por favor, conecte sua carteira para enviar tips.
@@ -39,7 +38,7 @@ export function TipJar() {
         </div>
       )}
 
-      {isSignedIn && recipientAddress && (
+      {isConnected && recipientAddress && (
         <div className="mb-8">
           <TipForm recipientAddress={recipientAddress} />
         </div>

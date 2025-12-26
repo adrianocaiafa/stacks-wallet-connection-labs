@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWalletKit } from '../hooks/useWalletKit';
+import { useAccount } from 'wagmi';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
@@ -9,9 +9,7 @@ interface TipFormProps {
 }
 
 export function TipForm({ recipientAddress }: TipFormProps) {
-  const { sessions } = useWalletKit();
-  const currentSession = sessions[0];
-  const isSignedIn = !!currentSession;
+  const { address, isConnected } = useAccount();
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +18,7 @@ export function TipForm({ recipientAddress }: TipFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isSignedIn || !userData) {
+    if (!isConnected || !address) {
       setError('Por favor, conecte sua carteira primeiro');
       return;
     }
@@ -49,19 +47,14 @@ export function TipForm({ recipientAddress }: TipFormProps) {
       // Use testnet for development, change to 'mainnet' for production
       const network = createNetwork('testnet');
 
-      // Note: For WalletKit, we need to handle session requests
-      // The wallet will sign the transaction via WalletConnect protocol
-      if (!currentSession) {
-        throw new Error('Carteira não conectada. Por favor, conecte sua carteira primeiro.');
-      }
-
-      // For now, we'll show a message that transaction signing needs to be implemented
-      // In production, you would use the WalletKit session to request transaction signing
-      setError('Assinatura de transação via WalletKit será implementada. Por enquanto, use uma carteira Stacks diretamente.');
+      // TODO: Implement transaction signing via WalletConnect/AppKit
+      // For Stacks, we need to use the wallet's signing capabilities
+      // This will require implementing session requests for Stacks transactions
+      setError('Assinatura de transação via WalletConnect será implementada. Por enquanto, use uma carteira Stacks diretamente.');
       setIsSubmitting(false);
       return;
 
-      // TODO: Implement transaction signing via WalletKit session_request
+      // Future implementation:
       // const txOptions = {
       //   contractAddress,
       //   contractName,
@@ -75,6 +68,7 @@ export function TipForm({ recipientAddress }: TipFormProps) {
       //   anchorMode: AnchorMode.Any,
       //   fee: 1000,
       // };
+      // Use wallet.signTransaction() via WalletConnect session request
 
       if (broadcastResponse.error) {
         throw new Error(broadcastResponse.error);
