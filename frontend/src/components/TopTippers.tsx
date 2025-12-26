@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { callReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 

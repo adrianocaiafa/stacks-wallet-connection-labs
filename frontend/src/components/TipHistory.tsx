@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { callReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -35,7 +35,7 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
         // Use testnet for development, change to 'mainnet' for production
         const network = createNetwork('testnet');
         
-        const counterResult = await callReadOnlyFunction({
+        const counterResult = await fetchCallReadOnlyFunction({
           contractAddress,
           contractName,
           functionName: 'get-tip-counter',
@@ -54,14 +54,14 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
         for (let i = 0; i < tipsToFetch; i++) {
           try {
             const tipId = totalTips - 1 - i; // Start from most recent
-            const tipResult = await callReadOnlyFunction({
+            const tipResult = await fetchCallReadOnlyFunction({
               contractAddress,
               contractName,
               functionName: 'get-tip-received',
               functionArgs: [recipientAddress, tipId],
               network,
               senderAddress: contractAddress,
-            });
+        });
 
             const tipData = cvToJSON(tipResult);
             
