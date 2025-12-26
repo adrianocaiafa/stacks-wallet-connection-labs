@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { useWalletKit } from '../hooks/useWalletKit';
 import { getSdkError } from '@walletconnect/utils';
 import { buildStacksNamespaces } from '../utils/walletkit';
+import { QRCodeSVG } from 'qrcode.react';
 
 export function WalletConnect() {
   const { walletKit, isInitialized, sessions, address } = useWalletKit();
   const [isConnecting, setIsConnecting] = useState(false);
   const [currentSession, setCurrentSession] = useState<any>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [wcUri, setWcUri] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessions.length > 0) {
@@ -61,16 +64,24 @@ export function WalletConnect() {
     setIsConnecting(true);
     
     try {
-      // Pair with WalletConnect - this will show the QR code modal
+      // Pair with WalletConnect - this generates a URI for connection
       const { uri } = await walletKit.pair();
       
-      // The modal with QR code should appear automatically
-      // User can scan with their wallet or copy the URI
-      console.log('Pairing URI:', uri);
+      if (uri) {
+        setWcUri(uri);
+        setShowQRModal(true);
+      }
     } catch (error) {
       console.error('Pairing error:', error);
+      alert('Erro ao conectar. Tente novamente.');
+    } finally {
       setIsConnecting(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowQRModal(false);
+    setWcUri(null);
   };
 
   const handleDisconnect = async () => {
@@ -105,12 +116,60 @@ export function WalletConnect() {
   }
 
   return (
-    <button
-      onClick={handleConnect}
-      disabled={isConnecting || !isInitialized}
-      className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
-    >
-      {!isInitialized ? 'Loading...' : isConnecting ? 'Connecting...' : 'Connect Wallet'}
-    </button>
+    <>
+      <button
+        onClick={handleConnect}
+        disabled={isConnecting || !isInitialized}
+        className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+      >
+        {!isInitialized ? 'Loading...' : isConnecting ? 'Connecting...' : 'Connect Wallet'}
+      </button>
+
+      {showQRModal && wcUri && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Conectar Carteira</h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-center space-y-4">
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+                <QRCodeSVG value={wcUri} size={256} />
+              </div>
+              
+              <p className="text-sm text-gray-600 text-center">
+                Escaneie este QR code com sua carteira Stacks compatível com WalletConnect
+              </p>
+              
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ou cole o URI manualmente:
+                </label>
+                <textarea
+                  value={wcUri}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
+                  rows={3}
+                  onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                />
+              </div>
+              
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
