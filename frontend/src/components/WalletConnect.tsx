@@ -1,4 +1,4 @@
-import { UserSession, openAuth } from '@stacks/connect';
+import { UserSession } from '@stacks/connect';
 import { useState, useEffect } from 'react';
 
 interface WalletConnectProps {
@@ -15,26 +15,24 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
       setIsSignedIn(true);
       setUserData(userSession.loadUserData());
     }
+    
+    // Listen for auth changes
+    userSession.onSignIn(() => {
+      setIsSignedIn(true);
+      setUserData(userSession.loadUserData());
+      setIsConnecting(false);
+    });
   }, [userSession]);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      openAuth({
+      userSession.redirectToSignIn({
+        redirectTo: window.location.origin,
         appDetails: {
           name: 'Stacks Portal',
           icon: window.location.origin + '/vite.svg',
         },
-        redirectTo: '/',
-        onFinish: () => {
-          setIsSignedIn(true);
-          setUserData(userSession.loadUserData());
-          setIsConnecting(false);
-        },
-        onCancel: () => {
-          setIsConnecting(false);
-        },
-        userSession,
       });
     } catch (error) {
       console.error('Connection error:', error);
