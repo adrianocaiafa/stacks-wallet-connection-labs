@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { callReadOnlyFunction, cvToJSON, ClarityValue } from '@stacks/transactions';
+import { callReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -44,7 +44,7 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
           senderAddress: contractAddress,
         });
 
-        const counter = cvToJSON(counterResult as ClarityValue);
+        const counter = cvToJSON(counterResult);
         const totalTips = parseInt(counter.value);
 
         // Fetch tips (limited to last 10 for performance)
@@ -63,7 +63,7 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
               senderAddress: contractAddress,
             });
 
-            const tipData = cvToJSON(tipResult as ClarityValue);
+            const tipData = cvToJSON(tipResult);
             
             if (tipData.value) {
               fetchedTips.push({
