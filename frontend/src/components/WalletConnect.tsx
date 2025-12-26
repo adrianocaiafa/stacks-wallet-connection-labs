@@ -1,49 +1,38 @@
-import { useConnect } from '@stacks/connect-react';
-import { StacksMainnet } from '@stacks/network';
+import { useAuth } from '@stacks/connect-react';
 import { useState } from 'react';
 
 export function WalletConnect() {
-  const { doOpenAuth, isAuthenticated, userData, doSignOut } = useConnect();
+  const { isSignedIn, userData, signOut, signIn } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      await doOpenAuth({
-        appDetails: {
-          name: 'Stacks Portal',
-          icon: window.location.origin + '/vite.svg',
-        },
-        redirectTo: '/',
-        onFinish: () => {
-          setIsConnecting(false);
-        },
-        onCancel: () => {
-          setIsConnecting(false);
-        },
-      });
+      await signIn();
     } catch (error) {
       console.error('Connection error:', error);
+    } finally {
       setIsConnecting(false);
     }
   };
 
   const handleDisconnect = () => {
-    doSignOut();
+    signOut();
   };
 
-  if (isAuthenticated && userData) {
+  if (isSignedIn && userData) {
+    const address = userData.profile?.stxAddress?.mainnet || userData.profile?.stxAddress?.testnet || '';
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-gray-600">
-          {userData.profile.stxAddress.mainnet.slice(0, 6)}...
-          {userData.profile.stxAddress.mainnet.slice(-4)}
+        <span className="text-sm text-gray-600 hidden sm:inline">
+          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
         </span>
         <button
           onClick={handleDisconnect}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition"
         >
-          Disconnect
+          <span className="hidden sm:inline">Disconnect</span>
+          <span className="sm:hidden">Discon.</span>
         </button>
       </div>
     );
@@ -53,7 +42,7 @@ export function WalletConnect() {
     <button
       onClick={handleConnect}
       disabled={isConnecting}
-      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+      className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
     >
       {isConnecting ? 'Connecting...' : 'Connect Wallet'}
     </button>
