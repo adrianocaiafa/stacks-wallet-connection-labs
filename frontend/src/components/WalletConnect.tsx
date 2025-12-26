@@ -31,31 +31,27 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
 
   const handleConnect = () => {
     setIsConnecting(true);
-    // Use UserSession's redirectToSignIn method
     try {
-      // Check if method exists, if not use alternative approach
-      if (typeof (userSession as any).redirectToSignIn === 'function') {
-        (userSession as any).redirectToSignIn({
+      // Try to use the authenticate method if available
+      if (typeof (userSession as any).authenticate === 'function') {
+        (userSession as any).authenticate({
           redirectTo: window.location.origin,
           appDetails: {
             name: 'Stacks Portal',
             icon: window.location.origin + '/vite.svg',
           },
+        }).then(() => {
+          setIsSignedIn(true);
+          setUserData(userSession.loadUserData());
+          setIsConnecting(false);
+        }).catch((error: any) => {
+          console.error('Authentication error:', error);
+          setIsConnecting(false);
         });
       } else {
-        // Fallback: use authenticate method
-        const appConfig = (userSession as any).appConfig;
-        if (appConfig) {
-          const redirectUri = `${window.location.origin}/`;
-          window.location.href = `https://app.blockstack.org/auth?${new URLSearchParams({
-            redirect_uri: redirectUri,
-            manifest_uri: `${redirectUri}manifest.json`,
-            scopes: 'store_write',
-          }).toString()}`;
-        } else {
-          console.error('Unable to initiate authentication');
-          setIsConnecting(false);
-        }
+        // Show message that wallet connection needs to be configured
+        alert('Por favor, instale uma carteira Stacks (como Hiro Wallet) e tente novamente. A conexão de carteira será implementada em breve.');
+        setIsConnecting(false);
       }
     } catch (error) {
       console.error('Connection error:', error);
