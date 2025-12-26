@@ -17,6 +17,7 @@
     "@walletconnect/core": "^2.23.1",
     "@walletconnect/jsonrpc-utils": "^1.0.8",
     "@walletconnect/utils": "^2.23.1",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0"
