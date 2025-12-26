@@ -14,11 +14,11 @@ const wagmiConfig = createConfig({
   },
 })
 
-// Create Wagmi Adapter with networks
+// Create Wagmi Adapter
+// The networks are inferred from wagmiConfig.chains
 const wagmiAdapter = new WagmiAdapter({
   wagmiConfig,
   projectId,
-  networks: [mainnet], // Pass networks explicitly
 })
 
 // Create AppKit instance
