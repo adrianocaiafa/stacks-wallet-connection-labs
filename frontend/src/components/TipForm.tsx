@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWalletConnect } from '../hooks/useWalletConnect';
+import { useAccount } from 'wagmi';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
@@ -9,8 +9,7 @@ interface TipFormProps {
 }
 
 export function TipForm({ recipientAddress }: TipFormProps) {
-  const { address } = useWalletConnect();
-  const isConnected = !!address;
+  const { address, isConnected } = useAccount();
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
