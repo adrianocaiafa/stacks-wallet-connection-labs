@@ -12,6 +12,9 @@ const wagmiAdapter = new WagmiAdapter({
   projectId,
 })
 
+// Export wagmiConfig for use in WagmiProvider
+export const wagmiConfig = wagmiAdapter.wagmiConfig
+
 // Create AppKit instance
 // This will automatically detect injected providers (like Leather) and WalletConnect
 export const appKit = createAppKit({
