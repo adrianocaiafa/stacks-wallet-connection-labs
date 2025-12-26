@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { callReadOnlyFunction, cvToJSON, ClarityValue } from '@stacks/transactions';
-import { StacksMainnet } from '@stacks/network';
+import { StacksMainnet, StacksTestnet } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
 interface TipHistoryProps {
@@ -32,12 +32,15 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
 
       try {
         // Get tip counter first
+        // Use testnet for development
+        const network = new StacksTestnet();
+        
         const counterResult = await callReadOnlyFunction({
           contractAddress,
           contractName,
           functionName: 'get-tip-counter',
           functionArgs: [],
-          network: new StacksMainnet(),
+          network,
           senderAddress: contractAddress,
         });
 
@@ -56,7 +59,7 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
               contractName,
               functionName: 'get-tip-received',
               functionArgs: [recipientAddress, tipId],
-              network: new StacksMainnet(),
+              network,
               senderAddress: contractAddress,
             });
 
