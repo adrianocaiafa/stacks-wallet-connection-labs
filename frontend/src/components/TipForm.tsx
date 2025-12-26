@@ -49,23 +49,32 @@ export function TipForm({ recipientAddress }: TipFormProps) {
       // Use testnet for development, change to 'mainnet' for production
       const network = createNetwork('testnet');
 
-      const txOptions = {
-        contractAddress,
-        contractName,
-        functionName: 'tip',
-        functionArgs: [
-          recipientAddress,
-          amountMicroStx,
-          memoOption,
-        ],
-        senderKey: '', // Will be obtained from wallet session
-        network,
-        anchorMode: AnchorMode.Any,
-        fee: 1000,
-      };
+      // Note: For WalletKit, we need to handle session requests
+      // The wallet will sign the transaction via WalletConnect protocol
+      if (!currentSession) {
+        throw new Error('Carteira não conectada. Por favor, conecte sua carteira primeiro.');
+      }
 
-      const transaction = await makeContractCall(txOptions);
-      const broadcastResponse = await broadcastTransaction(transaction, network);
+      // For now, we'll show a message that transaction signing needs to be implemented
+      // In production, you would use the WalletKit session to request transaction signing
+      setError('Assinatura de transação via WalletKit será implementada. Por enquanto, use uma carteira Stacks diretamente.');
+      setIsSubmitting(false);
+      return;
+
+      // TODO: Implement transaction signing via WalletKit session_request
+      // const txOptions = {
+      //   contractAddress,
+      //   contractName,
+      //   functionName: 'tip',
+      //   functionArgs: [
+      //     recipientAddress,
+      //     amountMicroStx,
+      //     memoOption,
+      //   ],
+      //   network,
+      //   anchorMode: AnchorMode.Any,
+      //   fee: 1000,
+      // };
 
       if (broadcastResponse.error) {
         throw new Error(broadcastResponse.error);
