@@ -4,7 +4,17 @@ import { buildApprovedNamespaces } from "@walletconnect/utils";
 import { STACKS_MAINNET, STACKS_TESTNET, STACKS_SIGNING_METHODS, STACKS_EVENTS } from "../data/StacksData";
 
 // Get project ID from environment
-const PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'a01e2f3b960c64bb5d3b7f6f8f9e0d1c2b3a4f5e6d7c8b9a0f1e2d3c4b5a6f7e8';
+// IMPORTANT: Get your Project ID from https://dashboard.walletconnect.com
+// The placeholder below will cause "Unauthorized: invalid key" errors
+// Create a .env file with: VITE_WALLETCONNECT_PROJECT_ID=your_actual_project_id
+const PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
+
+if (!PROJECT_ID) {
+  console.warn(
+    '⚠️ VITE_WALLETCONNECT_PROJECT_ID não configurado. ' +
+    'Obtenha um Project ID válido em https://dashboard.walletconnect.com e adicione ao arquivo .env'
+  );
+}
 
 // Singleton instances
 let coreInstance: Core | null = null;

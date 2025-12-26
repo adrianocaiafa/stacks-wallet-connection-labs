@@ -62,7 +62,7 @@ export function WalletConnect() {
     try {
       // Create a pairing proposal
       const { uri } = await signClient.connect({
-        requiredNamespaces: {
+        optionalNamespaces: {
           stacks: {
             chains: ['stacks:1', 'stacks:2147483648'],
             methods: ['stx_signTransaction', 'stx_signMessage'],
