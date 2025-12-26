@@ -1,15 +1,12 @@
 import { useState } from 'react';
-import { UserSession } from '@stacks/connect';
+import { useWalletKit } from '../hooks/useWalletKit';
 import { TipForm } from '../components/TipForm';
 import { TipHistory } from '../components/TipHistory';
 import { TopTippers } from '../components/TopTippers';
 
-interface TipJarProps {
-  userSession: UserSession;
-}
-
-export function TipJar({ userSession }: TipJarProps) {
-  const isSignedIn = userSession.isUserSignedIn();
+export function TipJar() {
+  const { sessions } = useWalletKit();
+  const isSignedIn = sessions.length > 0;
   const [recipientAddress, setRecipientAddress] = useState('');
 
   return (
@@ -44,7 +41,7 @@ export function TipJar({ userSession }: TipJarProps) {
 
       {isSignedIn && recipientAddress && (
         <div className="mb-8">
-          <TipForm recipientAddress={recipientAddress} userSession={userSession} />
+          <TipForm recipientAddress={recipientAddress} />
         </div>
       )}
 

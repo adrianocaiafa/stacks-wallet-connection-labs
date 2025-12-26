@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { UserSession } from '@stacks/connect';
+import { useWalletKit } from '../hooks/useWalletKit';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
 
 interface TipFormProps {
   recipientAddress: string;
-  userSession: UserSession;
 }
 
-export function TipForm({ recipientAddress, userSession }: TipFormProps) {
-  const isSignedIn = userSession.isUserSignedIn();
-  const userData = isSignedIn ? userSession.loadUserData() : null;
+export function TipForm({ recipientAddress }: TipFormProps) {
+  const { sessions } = useWalletKit();
+  const currentSession = sessions[0];
+  const isSignedIn = !!currentSession;
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,7 +58,7 @@ export function TipForm({ recipientAddress, userSession }: TipFormProps) {
           amountMicroStx,
           memoOption,
         ],
-        senderKey: userData?.appPrivateKey || '',
+        senderKey: '', // Will be obtained from wallet session
         network,
         anchorMode: AnchorMode.Any,
         fee: 1000,

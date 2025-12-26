@@ -1,72 +1,122 @@
-import { UserSession } from '@stacks/connect';
 import { useState, useEffect } from 'react';
+import { useWalletKit } from '../hooks/useWalletKit';
+import { getSdkError } from '@walletconnect/utils';
+import { buildApprovedNamespaces } from '@walletconnect/utils';
 
-interface WalletConnectProps {
-  userSession: UserSession;
-}
-
-export function WalletConnect({ userSession }: WalletConnectProps) {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+export function WalletConnect() {
+  const { walletKit, isInitialized, sessions } = useWalletKit();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [currentSession, setCurrentSession] = useState<any>(null);
 
   useEffect(() => {
-    const checkAuth = () => {
-      if (userSession.isUserSignedIn()) {
-        setIsSignedIn(true);
-        setUserData(userSession.loadUserData());
-      } else {
-        setIsSignedIn(false);
-        setUserData(null);
+    if (sessions.length > 0) {
+      setCurrentSession(sessions[0]);
+    } else {
+      setCurrentSession(null);
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (!walletKit || !isInitialized) return;
+
+    // Handle session proposals
+    const handleSessionProposal = async (proposal: any) => {
+      try {
+        // For Stacks, we need to build namespaces
+        // Note: Stacks support in WalletConnect may require specific configuration
+        const approvedNamespaces = buildApprovedNamespaces({
+          proposal: proposal.params,
+          supportedNamespaces: {
+            // Stacks namespace (if supported)
+            // For now, we'll use a basic structure
+            stacks: {
+              chains: ['stacks:1'], // Mainnet
+              methods: ['stx_transferStx', 'stx_callContract'],
+              events: ['chainChanged', 'accountsChanged'],
+              accounts: [], // Will be populated after connection
+            },
+          },
+        });
+
+        const session = await walletKit.approveSession({
+          id: proposal.id,
+          namespaces: approvedNamespaces,
+        });
+
+        setCurrentSession(session);
+        setIsConnecting(false);
+      } catch (error) {
+        console.error('Session approval error:', error);
+        await walletKit.rejectSession({
+          id: proposal.id,
+          reason: getSdkError('USER_REJECTED'),
+        });
+        setIsConnecting(false);
       }
     };
 
-    checkAuth();
-    
-    // Check auth state periodically (after redirect)
-    const interval = setInterval(checkAuth, 1000);
-    
-    return () => clearInterval(interval);
-  }, [userSession]);
+    walletKit.on('session_proposal', handleSessionProposal);
 
-  const handleConnect = () => {
+    return () => {
+      walletKit.off('session_proposal', handleSessionProposal);
+    };
+  }, [walletKit, isInitialized]);
+
+  const handleConnect = async () => {
+    if (!walletKit || !isInitialized) {
+      alert('WalletKit não está inicializado. Verifique a configuração.');
+      return;
+    }
+
     setIsConnecting(true);
-    try {
-      // Try to use the authenticate method if available
-      if (typeof (userSession as any).authenticate === 'function') {
-        (userSession as any).authenticate({
-          redirectTo: window.location.origin,
-          appDetails: {
-            name: 'Stacks Portal',
-            icon: window.location.origin + '/vite.svg',
-          },
-        }).then(() => {
-          setIsSignedIn(true);
-          setUserData(userSession.loadUserData());
-          setIsConnecting(false);
-        }).catch((error: any) => {
-          console.error('Authentication error:', error);
-          setIsConnecting(false);
-        });
-      } else {
-        // Show message that wallet connection needs to be configured
-        alert('Por favor, instale uma carteira Stacks (como Hiro Wallet) e tente novamente. A conexão de carteira será implementada em breve.');
+    
+    // For web wallets, we can pair with a URI from query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const uri = urlParams.get('uri');
+    
+    if (uri) {
+      try {
+        await walletKit.pair({ uri });
+      } catch (error) {
+        console.error('Pairing error:', error);
         setIsConnecting(false);
       }
-    } catch (error) {
-      console.error('Connection error:', error);
-      setIsConnecting(false);
+    } else {
+      // Show QR code or input field for manual URI entry
+      const wcUri = prompt('Cole o WalletConnect URI ou escaneie o QR code:');
+      if (wcUri) {
+        try {
+          await walletKit.pair({ uri: wcUri });
+        } catch (error) {
+          console.error('Pairing error:', error);
+          setIsConnecting(false);
+        }
+      } else {
+        setIsConnecting(false);
+      }
     }
   };
 
-  const handleDisconnect = () => {
-    userSession.signUserOut();
-    setIsSignedIn(false);
-    setUserData(null);
+  const handleDisconnect = async () => {
+    if (!walletKit || !currentSession) return;
+
+    try {
+      await walletKit.disconnectSession({
+        topic: currentSession.topic,
+        reason: getSdkError('USER_DISCONNECTED'),
+      });
+      setCurrentSession(null);
+    } catch (error) {
+      console.error('Disconnect error:', error);
+    }
   };
 
-  if (isSignedIn && userData) {
-    const address = userData.profile?.stxAddress?.mainnet || userData.profile?.stxAddress?.testnet || '';
+  if (currentSession) {
+    const account = currentSession.namespaces?.stacks?.accounts?.[0] || 
+                   currentSession.namespaces?.eip155?.accounts?.[0] || 
+                   'Connected';
+    const address = account.split(':').pop() || account;
+    
     return (
       <div className="flex items-center gap-3">
         <span className="text-sm text-gray-600 hidden sm:inline">
@@ -86,10 +136,10 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
   return (
     <button
       onClick={handleConnect}
-      disabled={isConnecting}
+      disabled={isConnecting || !isInitialized}
       className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
     >
-      {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+      {!isInitialized ? 'Loading...' : isConnecting ? 'Connecting...' : 'Connect Wallet'}
     </button>
   );
 }
