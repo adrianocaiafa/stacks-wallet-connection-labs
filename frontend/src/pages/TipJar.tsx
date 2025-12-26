@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useWalletKit } from '../hooks/useWalletKit';
 import { TipForm } from '../components/TipForm';
 import { TipHistory } from '../components/TipHistory';
 import { TopTippers } from '../components/TopTippers';
 
 export function TipJar() {
-  const { isConnected } = useAccount();
+  const { address, isInitialized } = useWalletKit();
+  const isConnected = !!address;
   const [recipientAddress, setRecipientAddress] = useState('');
 
   return (

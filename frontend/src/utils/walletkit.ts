@@ -1,5 +1,7 @@
 import { Core } from "@walletconnect/core";
 import { WalletKit } from "@reown/walletkit";
+import { buildApprovedNamespaces } from "@walletconnect/utils";
+import { STACKS_CHAINS, STACKS_SIGNING_METHODS, STACKS_EVENTS, STACKS_MAINNET, STACKS_TESTNET } from "../data/StacksData";
 
 // Get project ID from environment or use a default for development
 // IMPORTANT: Get your Project ID from https://dashboard.walletconnect.com
@@ -33,3 +35,41 @@ export function getWalletKit(): WalletKit | null {
   return walletKitInstance;
 }
 
+// Build approved namespaces for Stacks
+// Based on the example from reown-com/web-examples
+export function buildStacksNamespaces(proposal: any, stacksAddresses: string[]) {
+  const supportedNamespaces = {
+    stacks: {
+      chains: [STACKS_MAINNET, STACKS_TESTNET],
+      methods: Object.values(STACKS_SIGNING_METHODS),
+      events: Object.values(STACKS_EVENTS),
+      accounts: [
+        ...stacksAddresses.map(addr => `${STACKS_MAINNET}:${addr}`),
+        ...stacksAddresses.map(addr => `${STACKS_TESTNET}:${addr}`)
+      ]
+    }
+  };
+
+  try {
+    const approvedNamespaces = buildApprovedNamespaces({
+      proposal: proposal.params,
+      supportedNamespaces
+    });
+
+    return approvedNamespaces;
+  } catch (error) {
+    console.error('Error building approved namespaces:', error);
+    // Fallback: return a basic namespace structure
+    return {
+      stacks: {
+        chains: [STACKS_MAINNET, STACKS_TESTNET],
+        methods: Object.values(STACKS_SIGNING_METHODS),
+        events: Object.values(STACKS_EVENTS),
+        accounts: [
+          ...stacksAddresses.map(addr => `${STACKS_MAINNET}:${addr}`),
+          ...stacksAddresses.map(addr => `${STACKS_TESTNET}:${addr}`)
+        ]
+      }
+    };
+  }
+}

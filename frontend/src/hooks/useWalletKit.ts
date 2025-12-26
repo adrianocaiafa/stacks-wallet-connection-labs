@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { initWalletKit, getWalletKit } from '../utils/walletkit';
+import { initWalletKit } from '../utils/walletkit';
 import { WalletKit } from '@reown/walletkit';
 
 export function useWalletKit() {
   const [walletKit, setWalletKit] = useState<WalletKit | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
     const initialize = async () => {
@@ -15,25 +16,49 @@ export function useWalletKit() {
         setIsInitialized(true);
 
         // Get active sessions
-        const activeSessions = wk.getActiveSessions();
-        setSessions(Object.values(activeSessions));
+        const updateSessions = () => {
+          const activeSessions = wk.getActiveSessions();
+          const sessionArray = Object.values(activeSessions);
+          setSessions(sessionArray);
+          
+          // Extract address from first session if available
+          if (sessionArray.length > 0) {
+            const session = sessionArray[0];
+            // Try to get address from stacks namespace
+            const stacksAccounts = session.namespaces?.stacks?.accounts || [];
+            if (stacksAccounts.length > 0) {
+              // Format: stacks:1:ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              const account = stacksAccounts[0];
+              const addressPart = account.split(':').pop();
+              setAddress(addressPart || null);
+            } else {
+              setAddress(null);
+            }
+          } else {
+            setAddress(null);
+          }
+        };
+
+        updateSessions();
 
         // Listen for session proposals
         wk.on('session_proposal', async (proposal) => {
           console.log('Session proposal received:', proposal);
-          // Handle session proposal
         });
 
         // Listen for session requests
         wk.on('session_request', async (event) => {
           console.log('Session request received:', event);
-          // Handle session request
         });
 
         // Listen for session delete
         wk.on('session_delete', () => {
-          const activeSessions = wk.getActiveSessions();
-          setSessions(Object.values(activeSessions));
+          updateSessions();
+        });
+
+        // Listen for session update
+        wk.on('session_update', () => {
+          updateSessions();
         });
       } catch (error) {
         console.error('Failed to initialize WalletKit:', error);
@@ -47,6 +72,7 @@ export function useWalletKit() {
     walletKit,
     isInitialized,
     sessions,
+    address,
   };
 }
 
