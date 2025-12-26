@@ -8,11 +8,11 @@ export function Header() {
         <Link to="/" className="text-2xl font-bold text-gray-900">
           Stacks Portal
         </Link>
-        <nav className="flex items-center gap-4">
-          <Link to="/" className="text-gray-600 hover:text-gray-900">
+        <nav className="flex items-center gap-2 sm:gap-4">
+          <Link to="/" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Home
           </Link>
-          <Link to="/tip-jar" className="text-gray-600 hover:text-gray-900">
+          <Link to="/tip-jar" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Tip Jar
           </Link>
           <WalletConnect />
