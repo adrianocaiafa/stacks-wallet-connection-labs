@@ -31,23 +31,34 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
 
   const handleConnect = () => {
     setIsConnecting(true);
-    // Use the appConfig from userSession to redirect
-    const appConfig = (userSession as any).appConfig;
-    if (appConfig) {
-      const redirectUri = `${window.location.origin}/`;
-      const manifestUri = `${window.location.origin}/manifest.json`;
-      const scopes = ['store_write'];
-      
-      const authRequest = `stacks:?redirect_uri=${encodeURIComponent(redirectUri)}&manifest_uri=${encodeURIComponent(manifestUri)}&scopes=${scopes.join(',')}`;
-      
-      // Redirect to Stacks authenticator
-      window.location.href = `https://app.blockstack.org/auth?${new URLSearchParams({
-        redirect_uri: redirectUri,
-        manifest_uri: manifestUri,
-        scopes: scopes.join(','),
-      }).toString()}`;
-    } else {
-      console.error('AppConfig not found');
+    // Use UserSession's redirectToSignIn method
+    try {
+      // Check if method exists, if not use alternative approach
+      if (typeof (userSession as any).redirectToSignIn === 'function') {
+        (userSession as any).redirectToSignIn({
+          redirectTo: window.location.origin,
+          appDetails: {
+            name: 'Stacks Portal',
+            icon: window.location.origin + '/vite.svg',
+          },
+        });
+      } else {
+        // Fallback: use authenticate method
+        const appConfig = (userSession as any).appConfig;
+        if (appConfig) {
+          const redirectUri = `${window.location.origin}/`;
+          window.location.href = `https://app.blockstack.org/auth?${new URLSearchParams({
+            redirect_uri: redirectUri,
+            manifest_uri: `${redirectUri}manifest.json`,
+            scopes: 'store_write',
+          }).toString()}`;
+        } else {
+          console.error('Unable to initiate authentication');
+          setIsConnecting(false);
+        }
+      }
+    } catch (error) {
+      console.error('Connection error:', error);
       setIsConnecting(false);
     }
   };
