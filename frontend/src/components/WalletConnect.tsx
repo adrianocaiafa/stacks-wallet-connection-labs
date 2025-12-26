@@ -22,6 +22,44 @@ export function WalletConnect() {
 
   const currentSession = sessions.length > 0 ? sessions[0] : null;
 
+  useEffect(() => {
+    if (!signClient || !isInitialized) return;
+
+    // Handle session proposal approval
+    const handleSessionProposal = async (proposal: any) => {
+      try {
+        // For now, we'll use a placeholder address
+        // In production, you would get this from the connected wallet
+        const stacksAddresses = ['ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM']; // Placeholder
+        
+        const approvedNamespaces = buildStacksNamespaces(proposal, stacksAddresses);
+
+        const session = await signClient.approve({
+          id: proposal.id,
+          namespaces: approvedNamespaces,
+        });
+
+        console.log('Session approved:', session);
+        setShowModal(false);
+        setWcUri(null);
+        setIsConnecting(false);
+      } catch (error) {
+        console.error('Session approval error:', error);
+        await signClient.reject({
+          id: proposal.id,
+          reason: getSdkError('USER_REJECTED'),
+        });
+        setIsConnecting(false);
+      }
+    };
+
+    signClient.on('session_proposal', handleSessionProposal);
+
+    return () => {
+      signClient.off('session_proposal', handleSessionProposal);
+    };
+  }, [signClient, isInitialized]);
+
   const handleConnect = async () => {
     if (!signClient || !isInitialized) {
       alert('WalletConnect não está inicializado.');
@@ -33,7 +71,7 @@ export function WalletConnect() {
 
     try {
       // Create a pairing proposal
-      const { uri, approval } = await signClient.connect({
+      const { uri } = await signClient.connect({
         requiredNamespaces: {
           stacks: {
             chains: ['stacks:1', 'stacks:2147483648'],
@@ -46,19 +84,10 @@ export function WalletConnect() {
       if (uri) {
         setWcUri(uri);
       }
-
-      // Wait for approval
-      const session = await approval();
-      
-      // Handle session approval
-      console.log('Session approved:', session);
-      setShowModal(false);
-      setWcUri(null);
     } catch (error) {
       console.error('Connection error:', error);
       setShowModal(false);
       setWcUri(null);
-    } finally {
       setIsConnecting(false);
     }
   };
