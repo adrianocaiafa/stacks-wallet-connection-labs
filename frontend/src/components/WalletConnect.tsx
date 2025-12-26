@@ -1,4 +1,4 @@
-import { UserSession, redirectToSignIn } from '@stacks/connect';
+import { UserSession } from '@stacks/connect';
 import { useState, useEffect } from 'react';
 
 interface WalletConnectProps {
@@ -29,19 +29,25 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
     return () => clearInterval(interval);
   }, [userSession]);
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
     setIsConnecting(true);
-    try {
-      redirectToSignIn({
-        redirectTo: window.location.origin,
-        appDetails: {
-          name: 'Stacks Portal',
-          icon: window.location.origin + '/vite.svg',
-        },
-        userSession,
-      });
-    } catch (error) {
-      console.error('Connection error:', error);
+    // Use the appConfig from userSession to redirect
+    const appConfig = (userSession as any).appConfig;
+    if (appConfig) {
+      const redirectUri = `${window.location.origin}/`;
+      const manifestUri = `${window.location.origin}/manifest.json`;
+      const scopes = ['store_write'];
+      
+      const authRequest = `stacks:?redirect_uri=${encodeURIComponent(redirectUri)}&manifest_uri=${encodeURIComponent(manifestUri)}&scopes=${scopes.join(',')}`;
+      
+      // Redirect to Stacks authenticator
+      window.location.href = `https://app.blockstack.org/auth?${new URLSearchParams({
+        redirect_uri: redirectUri,
+        manifest_uri: manifestUri,
+        scopes: scopes.join(','),
+      }).toString()}`;
+    } else {
+      console.error('AppConfig not found');
       setIsConnecting(false);
     }
   };
