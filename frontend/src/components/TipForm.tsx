@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useConnect } from '@stacks/connect-react';
-import { StacksMainnet } from '@stacks/network';
+import { useAuth } from '@stacks/connect-react';
+import { StacksMainnet, StacksTestnet } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -9,7 +9,7 @@ interface TipFormProps {
 }
 
 export function TipForm({ recipientAddress }: TipFormProps) {
-  const { userSession } = useConnect();
+  const { userData, isSignedIn } = useAuth();
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,7 +18,7 @@ export function TipForm({ recipientAddress }: TipFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userSession || !userSession.isUserSignedIn()) {
+    if (!isSignedIn || !userData) {
       setError('Por favor, conecte sua carteira primeiro');
       return;
     }
@@ -30,13 +30,22 @@ export function TipForm({ recipientAddress }: TipFormProps) {
     try {
       const amountMicroStx = Math.floor(parseFloat(amount) * 1000000);
       
-      if (amountMicroStx <= 0) {
+      if (amountMicroStx <= 0 || isNaN(amountMicroStx)) {
         setError('O valor deve ser maior que zero');
         setIsSubmitting(false);
         return;
       }
 
+      if (!recipientAddress || !recipientAddress.startsWith('SP') && !recipientAddress.startsWith('ST')) {
+        setError('Endereço inválido. Deve começar com SP ou ST');
+        setIsSubmitting(false);
+        return;
+      }
+
       const memoOption = memo.trim() ? memo.trim() : null;
+
+      // Use testnet for development, change to StacksMainnet for production
+      const network = new StacksTestnet();
 
       const txOptions = {
         contractAddress,
@@ -47,14 +56,14 @@ export function TipForm({ recipientAddress }: TipFormProps) {
           amountMicroStx,
           memoOption,
         ],
-        senderKey: userSession.loadUserData().appPrivateKey,
-        network: new StacksMainnet(),
+        senderKey: userData.appPrivateKey,
+        network,
         anchorMode: AnchorMode.Any,
         fee: 1000,
       };
 
       const transaction = await makeContractCall(txOptions);
-      const broadcastResponse = await broadcastTransaction(transaction, new StacksMainnet());
+      const broadcastResponse = await broadcastTransaction(transaction, network);
 
       if (broadcastResponse.error) {
         throw new Error(broadcastResponse.error);
