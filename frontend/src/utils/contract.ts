@@ -1,5 +1,5 @@
 // Contract configuration
-// TODO: Update with actual deployed contract address
-export const contractAddress = 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM';
+// Mainnet contract address
+export const contractAddress = 'SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9';
 export const contractName = 'tip-jar';
 

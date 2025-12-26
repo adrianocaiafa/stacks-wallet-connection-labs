@@ -32,8 +32,8 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
 
       try {
         // Get tip counter first
-        // Use testnet for development, change to 'mainnet' for production
-        const network = createNetwork('testnet');
+        // Using mainnet (contract is deployed on mainnet)
+        const network = createNetwork('mainnet');
         
         const counterResult = await fetchCallReadOnlyFunction({
           contractAddress,

@@ -44,8 +44,8 @@ export function TipForm({ recipientAddress }: TipFormProps) {
 
       const memoOption = memo.trim() ? memo.trim() : null;
 
-      // Use testnet for development, change to 'mainnet' for production
-      const network = createNetwork('testnet');
+      // Using mainnet (contract is deployed on mainnet)
+      const network = createNetwork('mainnet');
 
       // TODO: Implement transaction signing via WalletConnect/AppKit
       // For Stacks, we need to use the wallet's signing capabilities
