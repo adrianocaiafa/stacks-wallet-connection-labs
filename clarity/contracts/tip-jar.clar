@@ -14,7 +14,7 @@
 
 ;; Maps to store tips
 ;; (recipient, tip-id) -> {sender, amount, memo, timestamp}
-(define-map tips-received (principal, uint) {
+(define-map tips-received (tuple (recipient principal) (tip-id uint)) {
     sender: principal,
     amount: uint,
     memo: (optional (string-utf8 140)),
@@ -22,7 +22,7 @@
 })
 
 ;; (sender, tip-id) -> {recipient, amount, memo, timestamp}
-(define-map tips-sent (principal, uint) {
+(define-map tips-sent (tuple (sender principal) (tip-id uint)) {
     recipient: principal,
     amount: uint,
     memo: (optional (string-utf8 140)),
@@ -78,7 +78,7 @@
 ;; @param amount: Amount in micro-STX (1 STX = 1,000,000 micro-STX)
 ;; @param memo: Optional memo message (max 140 characters)
 (define-public (tip (to principal) (amount uint) (memo (optional (string-utf8 140))))
-    (let ((sender (as-contract tx-sender)))
+    (let ((sender tx-sender))
         ;; Validate amount
         (asserts! (> amount u0) ERR-INVALID-AMOUNT)
         
@@ -98,10 +98,10 @@
         (let ((tip-id (var-get tip-counter)))
             (var-set tip-counter (+ tip-id u1))
             
-            ;; Get current block height as timestamp
-            (let ((timestamp (block-height)))
+            ;; Use tip-id as timestamp (sequential identifier)
+            (let ((timestamp tip-id))
                 ;; Store tip in received map
-                (map-set tips-received (tuple (to tip-id)) {
+                (map-set tips-received (tuple (recipient to) (tip-id tip-id)) {
                     sender: sender,
                     amount: amount,
                     memo: memo,
@@ -109,7 +109,7 @@
                 })
                 
                 ;; Store tip in sent map
-                (map-set tips-sent (tuple (sender tip-id)) {
+                (map-set tips-sent (tuple (sender sender) (tip-id tip-id)) {
                     recipient: to,
                     amount: amount,
                     memo: memo,
@@ -132,7 +132,7 @@
 ;; @param tip-id: The tip ID
 ;; @returns: Tip data or none if not found
 (define-read-only (get-tip-received (user principal) (tip-id uint))
-    (map-get? tips-received (tuple (user tip-id)))
+    (map-get? tips-received (tuple (recipient user) (tip-id tip-id)))
 )
 
 ;; Get a specific tip sent by a user
@@ -140,7 +140,7 @@
 ;; @param tip-id: The tip ID
 ;; @returns: Tip data or none if not found
 (define-read-only (get-tip-sent (sender principal) (tip-id uint))
-    (map-get? tips-sent (tuple (sender tip-id)))
+    (map-get? tips-sent (tuple (sender sender) (tip-id tip-id)))
 )
 
 ;; Get statistics for a tipper
