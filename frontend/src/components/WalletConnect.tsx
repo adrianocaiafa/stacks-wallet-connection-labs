@@ -11,17 +11,22 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    if (userSession.isUserSignedIn()) {
-      setIsSignedIn(true);
-      setUserData(userSession.loadUserData());
-    }
+    const checkAuth = () => {
+      if (userSession.isUserSignedIn()) {
+        setIsSignedIn(true);
+        setUserData(userSession.loadUserData());
+      } else {
+        setIsSignedIn(false);
+        setUserData(null);
+      }
+    };
+
+    checkAuth();
     
-    // Listen for auth changes
-    userSession.onSignIn(() => {
-      setIsSignedIn(true);
-      setUserData(userSession.loadUserData());
-      setIsConnecting(false);
-    });
+    // Check auth state periodically (after redirect)
+    const interval = setInterval(checkAuth, 1000);
+    
+    return () => clearInterval(interval);
   }, [userSession]);
 
   const handleConnect = async () => {
