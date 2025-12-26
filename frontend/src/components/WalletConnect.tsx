@@ -1,4 +1,4 @@
-import { UserSession, showConnect } from '@stacks/connect';
+import { UserSession, openAuth } from '@stacks/connect';
 import { useState, useEffect } from 'react';
 
 interface WalletConnectProps {
@@ -20,7 +20,7 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      await showConnect({
+      openAuth({
         appDetails: {
           name: 'Stacks Portal',
           icon: window.location.origin + '/vite.svg',
