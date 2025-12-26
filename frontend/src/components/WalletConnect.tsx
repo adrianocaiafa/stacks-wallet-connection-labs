@@ -32,13 +32,20 @@ export function WalletConnect({ userSession }: WalletConnectProps) {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      userSession.redirectToSignIn({
+      // Use authenticate method which redirects to sign in
+      const authResponse = await userSession.authenticate({
         redirectTo: window.location.origin,
         appDetails: {
           name: 'Stacks Portal',
           icon: window.location.origin + '/vite.svg',
         },
       });
+      
+      if (authResponse) {
+        setIsSignedIn(true);
+        setUserData(userSession.loadUserData());
+      }
+      setIsConnecting(false);
     } catch (error) {
       console.error('Connection error:', error);
       setIsConnecting(false);
