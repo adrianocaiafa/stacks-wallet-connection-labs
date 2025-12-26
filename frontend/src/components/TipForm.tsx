@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserSession } from '@stacks/connect';
-import { StacksMainnet, StacksTestnet } from '@stacks/network';
+import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -46,8 +46,8 @@ export function TipForm({ recipientAddress, userSession }: TipFormProps) {
 
       const memoOption = memo.trim() ? memo.trim() : null;
 
-      // Use testnet for development, change to StacksMainnet for production
-      const network = new StacksTestnet();
+      // Use testnet for development, change to 'mainnet' for production
+      const network = createNetwork('testnet');
 
       const txOptions = {
         contractAddress,

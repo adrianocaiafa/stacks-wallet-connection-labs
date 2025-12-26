@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { callReadOnlyFunction, cvToJSON, ClarityValue } from '@stacks/transactions';
-import { StacksMainnet } from '@stacks/network';
+import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
 interface TipperStats {
