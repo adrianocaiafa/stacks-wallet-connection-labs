@@ -1,23 +1,14 @@
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { mainnet } from '@reown/appkit/networks'
-import { createConfig, http } from 'wagmi'
 
 // Get project ID from environment
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '818bdad25c702392f94804d469abc4c7'
 
-// Create Wagmi config
-const wagmiConfig = createConfig({
-  chains: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-})
-
-// Create Wagmi Adapter
-// The networks are inferred from wagmiConfig.chains
+// Create Wagmi Adapter with networks
+// The WagmiAdapter will create its own wagmiConfig internally
 const wagmiAdapter = new WagmiAdapter({
-  wagmiConfig,
+  networks: [mainnet],
   projectId,
 })
 

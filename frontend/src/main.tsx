@@ -8,9 +8,12 @@ import App from './App.tsx'
 
 const queryClient = new QueryClient()
 
+// Get wagmiConfig from the adapter
+const wagmiConfig = appKit.wagmiAdapter.wagmiConfig
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <WagmiProvider config={appKit.wagmiAdapter.wagmiConfig}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
