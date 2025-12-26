@@ -44,8 +44,8 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
           senderAddress: contractAddress,
         });
 
-        const counter = cvToJSON(counterResult);
-        const totalTips = parseInt(counter.value);
+        const counter = cvToJSON(counterResult.result || counterResult);
+        const totalTips = parseInt(counter.value || '0');
 
         // Fetch tips (limited to last 10 for performance)
         const tipsToFetch = Math.min(totalTips, 10);
@@ -61,9 +61,9 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
               functionArgs: [recipientAddress, tipId],
               network,
               senderAddress: contractAddress,
-        });
+            });
 
-            const tipData = cvToJSON(tipResult);
+            const tipData = cvToJSON(tipResult.result || tipResult);
             
             if (tipData.value) {
               fetchedTips.push({
