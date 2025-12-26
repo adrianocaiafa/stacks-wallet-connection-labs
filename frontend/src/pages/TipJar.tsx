@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useConnect } from '@stacks/connect-react';
+import { useAuth } from '@stacks/connect-react';
 import { TipForm } from '../components/TipForm';
 import { TipHistory } from '../components/TipHistory';
 import { TopTippers } from '../components/TopTippers';
 
 export function TipJar() {
-  const { isAuthenticated } = useConnect();
+  const { isSignedIn } = useAuth();
   const [recipientAddress, setRecipientAddress] = useState('');
 
   return (
@@ -30,7 +30,7 @@ export function TipJar() {
         </div>
       </div>
 
-      {!isAuthenticated && (
+      {!isSignedIn && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-yellow-800">
             Por favor, conecte sua carteira para enviar tips.
@@ -38,7 +38,7 @@ export function TipJar() {
         </div>
       )}
 
-      {isAuthenticated && recipientAddress && (
+      {isSignedIn && recipientAddress && (
         <div className="mb-8">
           <TipForm recipientAddress={recipientAddress} />
         </div>
