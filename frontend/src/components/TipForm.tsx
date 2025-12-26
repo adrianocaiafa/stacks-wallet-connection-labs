@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { useAuth } from '@stacks/connect-react';
+import { UserSession } from '@stacks/connect';
 import { StacksMainnet, StacksTestnet } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
 
 interface TipFormProps {
   recipientAddress: string;
+  userSession: UserSession;
 }
 
-export function TipForm({ recipientAddress }: TipFormProps) {
-  const { userData, isSignedIn } = useAuth();
+export function TipForm({ recipientAddress, userSession }: TipFormProps) {
+  const isSignedIn = userSession.isUserSignedIn();
+  const userData = isSignedIn ? userSession.loadUserData() : null;
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +58,7 @@ export function TipForm({ recipientAddress }: TipFormProps) {
           amountMicroStx,
           memoOption,
         ],
-        senderKey: userData.appPrivateKey,
+        senderKey: userData?.appPrivateKey || '',
         network,
         anchorMode: AnchorMode.Any,
         fee: 1000,

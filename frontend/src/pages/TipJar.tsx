@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { useAuth } from '@stacks/connect-react';
+import { UserSession } from '@stacks/connect';
 import { TipForm } from '../components/TipForm';
 import { TipHistory } from '../components/TipHistory';
 import { TopTippers } from '../components/TopTippers';
 
-export function TipJar() {
-  const { isSignedIn } = useAuth();
+interface TipJarProps {
+  userSession: UserSession;
+}
+
+export function TipJar({ userSession }: TipJarProps) {
+  const isSignedIn = userSession.isUserSignedIn();
   const [recipientAddress, setRecipientAddress] = useState('');
 
   return (
@@ -40,7 +44,7 @@ export function TipJar() {
 
       {isSignedIn && recipientAddress && (
         <div className="mb-8">
-          <TipForm recipientAddress={recipientAddress} />
+          <TipForm recipientAddress={recipientAddress} userSession={userSession} />
         </div>
       )}
 

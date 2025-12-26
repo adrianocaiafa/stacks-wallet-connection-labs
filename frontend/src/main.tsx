@@ -1,19 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { AuthProvider } from '@stacks/connect-react';
+import { AppConfig, UserSession } from '@stacks/connect';
 import './index.css'
 import App from './App.tsx'
 
+const appConfig = new AppConfig(['store_write'], 'http://localhost:5173');
+const userSession = new UserSession({ appConfig });
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider
-      appDetails={{
-        name: 'Stacks Portal',
-        icon: window.location.origin + '/vite.svg',
-      }}
-      redirectTo="/"
-    >
-      <App />
-    </AuthProvider>
+    <App userSession={userSession} />
   </StrictMode>,
 )

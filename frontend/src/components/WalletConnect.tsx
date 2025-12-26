@@ -1,23 +1,51 @@
-import { useAuth } from '@stacks/connect-react';
-import { useState } from 'react';
+import { UserSession, showConnect } from '@stacks/connect';
+import { useState, useEffect } from 'react';
 
-export function WalletConnect() {
-  const { isSignedIn, userData, signOut, signIn } = useAuth();
+interface WalletConnectProps {
+  userSession: UserSession;
+}
+
+export function WalletConnect({ userSession }: WalletConnectProps) {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    if (userSession.isUserSignedIn()) {
+      setIsSignedIn(true);
+      setUserData(userSession.loadUserData());
+    }
+  }, [userSession]);
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      await signIn();
+      await showConnect({
+        appDetails: {
+          name: 'Stacks Portal',
+          icon: window.location.origin + '/vite.svg',
+        },
+        redirectTo: '/',
+        onFinish: () => {
+          setIsSignedIn(true);
+          setUserData(userSession.loadUserData());
+          setIsConnecting(false);
+        },
+        onCancel: () => {
+          setIsConnecting(false);
+        },
+        userSession,
+      });
     } catch (error) {
       console.error('Connection error:', error);
-    } finally {
       setIsConnecting(false);
     }
   };
 
   const handleDisconnect = () => {
-    signOut();
+    userSession.signUserOut();
+    setIsSignedIn(false);
+    setUserData(null);
   };
 
   if (isSignedIn && userData) {
