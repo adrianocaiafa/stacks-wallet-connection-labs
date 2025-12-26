@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWalletKit } from '../hooks/useWalletKit';
+import { useWalletConnect } from '../hooks/useWalletConnect';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode } from '@stacks/transactions';
 import { contractAddress, contractName } from '../utils/contract';
@@ -9,7 +9,8 @@ interface TipFormProps {
 }
 
 export function TipForm({ recipientAddress }: TipFormProps) {
-  const { address, isConnected } = useWalletKit();
+  const { address } = useWalletConnect();
+  const isConnected = !!address;
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

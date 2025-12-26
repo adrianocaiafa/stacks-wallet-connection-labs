@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useWalletKit } from '../hooks/useWalletKit';
+import { useWalletConnect } from '../hooks/useWalletConnect';
 import { TipForm } from '../components/TipForm';
 import { TipHistory } from '../components/TipHistory';
 import { TopTippers } from '../components/TopTippers';
 
 export function TipJar() {
-  const { address, isInitialized } = useWalletKit();
+  const { address } = useWalletConnect();
   const isConnected = !!address;
   const [recipientAddress, setRecipientAddress] = useState('');
 

@@ -1,98 +1,82 @@
 import { useState, useEffect } from 'react';
-import { useWalletKit } from '../hooks/useWalletKit';
+import { useWalletConnect } from '../hooks/useWalletConnect';
 import { getSdkError } from '@walletconnect/utils';
-import { buildStacksNamespaces } from '../utils/walletkit';
+import { buildStacksNamespaces } from '../utils/walletconnect';
 import { QRCodeSVG } from 'qrcode.react';
 
+// Wallet metadata for display
+const WALLETS = [
+  { id: 'walletconnect', name: 'WalletConnect', icon: '🔗' },
+  { id: 'metamask', name: 'MetaMask', icon: '🦊' },
+  { id: 'trust', name: 'Trust Wallet', icon: '🛡️' },
+  { id: 'coinbase', name: 'Coinbase', icon: '🔵' },
+  { id: 'rainbow', name: 'Rainbow', icon: '🌈' },
+  { id: 'phantom', name: 'Phantom', icon: '👻' },
+];
+
 export function WalletConnect() {
-  const { walletKit, isInitialized, sessions, address } = useWalletKit();
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [currentSession, setCurrentSession] = useState<any>(null);
-  const [showQRModal, setShowQRModal] = useState(false);
+  const { signClient, isInitialized, sessions, address } = useWalletConnect();
+  const [showModal, setShowModal] = useState(false);
   const [wcUri, setWcUri] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
-  useEffect(() => {
-    if (sessions.length > 0) {
-      setCurrentSession(sessions[0]);
-    } else {
-      setCurrentSession(null);
-    }
-  }, [sessions]);
-
-  useEffect(() => {
-    if (!walletKit || !isInitialized) return;
-
-    // Handle session proposals
-    const handleSessionProposal = async (proposal: any) => {
-      try {
-        // For now, we'll use a placeholder address
-        // In production, you would get this from the connected wallet
-        const stacksAddresses = ['ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM']; // Placeholder
-        
-        const approvedNamespaces = buildStacksNamespaces(proposal, stacksAddresses);
-
-        const session = await walletKit.approveSession({
-          id: proposal.id,
-          namespaces: approvedNamespaces,
-        });
-
-        setCurrentSession(session);
-        setIsConnecting(false);
-      } catch (error) {
-        console.error('Session approval error:', error);
-        await walletKit.rejectSession({
-          id: proposal.id,
-          reason: getSdkError('USER_REJECTED'),
-        });
-        setIsConnecting(false);
-      }
-    };
-
-    walletKit.on('session_proposal', handleSessionProposal);
-
-    return () => {
-      walletKit.off('session_proposal', handleSessionProposal);
-    };
-  }, [walletKit, isInitialized]);
+  const currentSession = sessions.length > 0 ? sessions[0] : null;
 
   const handleConnect = async () => {
-    if (!walletKit || !isInitialized) {
-      alert('WalletKit não está inicializado. Verifique a configuração.');
+    if (!signClient || !isInitialized) {
+      alert('WalletConnect não está inicializado.');
       return;
     }
 
+    setShowModal(true);
     setIsConnecting(true);
-    
+
     try {
-      // Pair with WalletConnect - this generates a URI for connection
-      const { uri } = await walletKit.pair();
-      
+      // Create a pairing proposal
+      const { uri, approval } = await signClient.connect({
+        requiredNamespaces: {
+          stacks: {
+            chains: ['stacks:1', 'stacks:2147483648'],
+            methods: ['stx_signTransaction', 'stx_signMessage'],
+            events: ['stacks_accountsChanged', 'stacks_chainChanged'],
+          },
+        },
+      });
+
       if (uri) {
         setWcUri(uri);
-        setShowQRModal(true);
       }
+
+      // Wait for approval
+      const session = await approval();
+      
+      // Handle session approval
+      console.log('Session approved:', session);
+      setShowModal(false);
+      setWcUri(null);
     } catch (error) {
-      console.error('Pairing error:', error);
-      alert('Erro ao conectar. Tente novamente.');
+      console.error('Connection error:', error);
+      setShowModal(false);
+      setWcUri(null);
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const handleCloseModal = () => {
-    setShowQRModal(false);
-    setWcUri(null);
+  const handleWalletClick = async (walletId: string) => {
+    // For now, all wallets use the same connection flow
+    // In production, you might want to handle different wallets differently
+    await handleConnect();
   };
 
   const handleDisconnect = async () => {
-    if (!walletKit || !currentSession) return;
+    if (!signClient || !currentSession) return;
 
     try {
-      await walletKit.disconnectSession({
+      await signClient.disconnect({
         topic: currentSession.topic,
         reason: getSdkError('USER_DISCONNECTED'),
       });
-      setCurrentSession(null);
     } catch (error) {
       console.error('Disconnect error:', error);
     }
@@ -119,54 +103,76 @@ export function WalletConnect() {
     <>
       <button
         onClick={handleConnect}
-        disabled={isConnecting || !isInitialized}
+        disabled={!isInitialized}
         className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
       >
-        {!isInitialized ? 'Loading...' : isConnecting ? 'Connecting...' : 'Connect Wallet'}
+        Connect Wallet
       </button>
 
-      {showQRModal && wcUri && (
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Conectar Carteira</h3>
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-semibold text-gray-900">Conectar Carteira</h3>
               <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600"
+                onClick={() => {
+                  setShowModal(false);
+                  setWcUri(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
               >
                 ✕
               </button>
             </div>
-            
-            <div className="flex flex-col items-center space-y-4">
-              <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-                <QRCodeSVG value={wcUri} size={256} />
+
+            {wcUri ? (
+              // Show QR code when URI is available
+              <div className="flex flex-col items-center space-y-4">
+                <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+                  <QRCodeSVG value={wcUri} size={256} />
+                </div>
+                <p className="text-sm text-gray-600 text-center">
+                  Escaneie este QR code com sua carteira Stacks compatível com WalletConnect
+                </p>
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ou cole o URI manualmente:
+                  </label>
+                  <textarea
+                    value={wcUri}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
+                    rows={3}
+                    onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                  />
+                </div>
               </div>
-              
-              <p className="text-sm text-gray-600 text-center">
-                Escaneie este QR code com sua carteira Stacks compatível com WalletConnect
-              </p>
-              
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ou cole o URI manualmente:
-                </label>
-                <textarea
-                  value={wcUri}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-mono"
-                  rows={3}
-                  onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                />
+            ) : (
+              // Show wallet buttons
+              <div>
+                <p className="text-gray-600 mb-4 text-center">
+                  Escolha uma carteira para conectar
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {WALLETS.map((wallet) => (
+                    <button
+                      key={wallet.id}
+                      onClick={() => handleWalletClick(wallet.id)}
+                      disabled={isConnecting}
+                      className="flex flex-col items-center justify-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition disabled:opacity-50"
+                    >
+                      <span className="text-3xl mb-2">{wallet.icon}</span>
+                      <span className="text-sm font-medium text-gray-700">{wallet.name}</span>
+                    </button>
+                  ))}
+                </div>
+                {isConnecting && (
+                  <div className="mt-4 text-center text-gray-600">
+                    Conectando...
+                  </div>
+                )}
               </div>
-              
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
-              >
-                Fechar
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
