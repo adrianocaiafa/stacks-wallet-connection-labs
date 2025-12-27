@@ -27,8 +27,9 @@ export function TopTippers() {
         
         // Primeiro, buscar transações do contrato para descobrir quais endereços enviaram tips
         const contractId = `${contractAddress}.${contractName}`;
-        // Buscar transações que chamam este contrato usando API do Hiro (tem CORS)
-        const transactionsUrl = `${STACKS_API_URL}/extended/v1/address/${contractAddress}/transactions?limit=100`;
+        // Buscar transações usando endpoint de contrato (não de endereço)
+        // Tentar endpoint de eventos/transações do contrato
+        const transactionsUrl = `${STACKS_API_URL}/extended/v1/tx/contract_call?contract_id=${contractId}&function_name=tip&limit=100`;
         
         console.log('Buscando transações do contrato...', transactionsUrl);
         
@@ -50,27 +51,28 @@ export function TopTippers() {
           console.log('Dados de transações recebidos:', transactionsData);
           
           // Extrair endereços únicos que chamaram a função 'tip'
-          if (transactionsData.results) {
-            for (const tx of transactionsData.results) {
-              // Verificar se é uma chamada de contrato para a função 'tip'
-              if (
-                tx.tx_type === 'contract_call' &&
-                tx.contract_call &&
-                (tx.contract_call.contract_id === contractId || 
-                 (tx.contract_call.contract_address === contractAddress && 
-                  tx.contract_call.contract_name === contractName)) &&
-                tx.contract_call.function_name === 'tip' &&
-                tx.sender_address
-              ) {
-                uniqueSenders.add(tx.sender_address);
-                console.log('Encontrado tipper:', tx.sender_address);
-              }
+          // O formato pode variar dependendo do endpoint usado
+          const transactions = transactionsData.results || transactionsData || [];
+          
+          for (const tx of transactions) {
+            // Verificar se é uma chamada de contrato para a função 'tip'
+            const isTipCall = 
+              tx.tx_type === 'contract_call' &&
+              tx.contract_call &&
+              (tx.contract_call.contract_id === contractId || 
+               (tx.contract_call.contract_address === contractAddress && 
+                tx.contract_call.contract_name === contractName)) &&
+              tx.contract_call.function_name === 'tip';
+            
+            if (isTipCall && tx.sender_address) {
+              uniqueSenders.add(tx.sender_address);
+              console.log('Encontrado tipper:', tx.sender_address);
             }
           }
         } catch (apiError: any) {
           console.warn('Erro ao buscar transações via API, usando fallback:', apiError.message);
-          // Fallback: tentar descobrir endereços usando o tip-counter e iterando
-          // Isso é menos eficiente mas funciona mesmo sem API
+          // Fallback: descobrir endereços usando o contrato diretamente
+          // Iterar sobre os tips e descobrir os senders através do map tips-sent
           try {
             const counterResult = await fetchCallReadOnlyFunction({
               contractAddress,
@@ -85,8 +87,40 @@ export function TopTippers() {
             const totalTips = parseInt(counter.value || '0');
             console.log('Total de tips encontrados:', totalTips);
             
-            // Por enquanto, vamos apenas mostrar uma mensagem informativa
-            console.log('Não foi possível buscar transações via API. Use a lista de endereços conhecidos.');
+            if (totalTips > 0) {
+              // Tentar descobrir endereços iterando sobre os tips
+              // Para cada tip-id, tentar descobrir o sender através de uma busca inteligente
+              // Nota: Esta é uma abordagem limitada, mas tenta descobrir alguns endereços
+              console.log('Tentando descobrir endereços através do contrato...');
+              
+              // Como não podemos iterar sobre todos os endereços possíveis,
+              // vamos tentar uma abordagem alternativa: buscar através do Stacks Explorer
+              // ou usar uma lista de endereços conhecidos
+              
+              // Por enquanto, vamos tentar usar o Stacks Explorer API como fallback
+              try {
+                const explorerUrl = `https://api.stacks.co/extended/v1/address/${contractAddress}/transactions?limit=100`;
+                const explorerResponse = await fetch(explorerUrl);
+                if (explorerResponse.ok) {
+                  const explorerData = await explorerResponse.json();
+                  if (explorerData.results) {
+                    for (const tx of explorerData.results) {
+                      if (
+                        tx.tx_type === 'contract_call' &&
+                        tx.contract_call?.contract_id === contractId &&
+                        tx.contract_call?.function_name === 'tip' &&
+                        tx.sender_address
+                      ) {
+                        uniqueSenders.add(tx.sender_address);
+                        console.log('Encontrado tipper via Explorer:', tx.sender_address);
+                      }
+                    }
+                  }
+                }
+              } catch (explorerError: any) {
+                console.log('Explorer API também falhou:', explorerError.message);
+              }
+            }
           } catch (fallbackError: any) {
             console.error('Erro no fallback também:', fallbackError);
           }
