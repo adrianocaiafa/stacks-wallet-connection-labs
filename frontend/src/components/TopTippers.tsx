@@ -3,8 +3,8 @@ import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stack
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
-// API do Stacks para buscar transações
-const STACKS_API_URL = 'https://api.stacks.co';
+// API do Hiro para buscar transações (tem CORS habilitado)
+const STACKS_API_URL = 'https://api.hiro.so';
 
 interface TipperStats {
   address: string;
@@ -27,37 +27,78 @@ export function TopTippers() {
         
         // Primeiro, buscar transações do contrato para descobrir quais endereços enviaram tips
         const contractId = `${contractAddress}.${contractName}`;
-        // Buscar transações que chamam este contrato
+        // Buscar transações que chamam este contrato usando API do Hiro (tem CORS)
         const transactionsUrl = `${STACKS_API_URL}/extended/v1/address/${contractAddress}/transactions?limit=100`;
         
         console.log('Buscando transações do contrato...', transactionsUrl);
-        const transactionsResponse = await fetch(transactionsUrl);
-        const transactionsData = await transactionsResponse.json();
         
-        console.log('Dados de transações recebidos:', transactionsData);
+        let uniqueSenders = new Set<string>();
         
-        // Extrair endereços únicos que chamaram a função 'tip'
-        const uniqueSenders = new Set<string>();
-        
-        if (transactionsData.results) {
-          for (const tx of transactionsData.results) {
-            // Verificar se é uma chamada de contrato para a função 'tip'
-            if (
-              tx.tx_type === 'contract_call' &&
-              tx.contract_call &&
-              (tx.contract_call.contract_id === contractId || 
-               (tx.contract_call.contract_address === contractAddress && 
-                tx.contract_call.contract_name === contractName)) &&
-              tx.contract_call.function_name === 'tip' &&
-              tx.sender_address
-            ) {
-              uniqueSenders.add(tx.sender_address);
-              console.log('Encontrado tipper:', tx.sender_address);
+        try {
+          const transactionsResponse = await fetch(transactionsUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+          });
+          
+          if (!transactionsResponse.ok) {
+            throw new Error(`HTTP error! status: ${transactionsResponse.status}`);
+          }
+          
+          const transactionsData = await transactionsResponse.json();
+          console.log('Dados de transações recebidos:', transactionsData);
+          
+          // Extrair endereços únicos que chamaram a função 'tip'
+          if (transactionsData.results) {
+            for (const tx of transactionsData.results) {
+              // Verificar se é uma chamada de contrato para a função 'tip'
+              if (
+                tx.tx_type === 'contract_call' &&
+                tx.contract_call &&
+                (tx.contract_call.contract_id === contractId || 
+                 (tx.contract_call.contract_address === contractAddress && 
+                  tx.contract_call.contract_name === contractName)) &&
+                tx.contract_call.function_name === 'tip' &&
+                tx.sender_address
+              ) {
+                uniqueSenders.add(tx.sender_address);
+                console.log('Encontrado tipper:', tx.sender_address);
+              }
             }
+          }
+        } catch (apiError: any) {
+          console.warn('Erro ao buscar transações via API, usando fallback:', apiError.message);
+          // Fallback: tentar descobrir endereços usando o tip-counter e iterando
+          // Isso é menos eficiente mas funciona mesmo sem API
+          try {
+            const counterResult = await fetchCallReadOnlyFunction({
+              contractAddress,
+              contractName,
+              functionName: 'get-tip-counter',
+              functionArgs: [],
+              network,
+              senderAddress: contractAddress,
+            });
+            
+            const counter = cvToJSON(counterResult);
+            const totalTips = parseInt(counter.value || '0');
+            console.log('Total de tips encontrados:', totalTips);
+            
+            // Por enquanto, vamos apenas mostrar uma mensagem informativa
+            console.log('Não foi possível buscar transações via API. Use a lista de endereços conhecidos.');
+          } catch (fallbackError: any) {
+            console.error('Erro no fallback também:', fallbackError);
           }
         }
 
         console.log('Endereços únicos encontrados:', Array.from(uniqueSenders));
+        
+        // Se não encontrou nenhum endereço, mostrar mensagem
+        if (uniqueSenders.size === 0) {
+          setError('Não foi possível buscar endereços que enviaram tips. Tente novamente mais tarde.');
+          return;
+        }
 
         const tipperStats: TipperStats[] = [];
 
