@@ -6,9 +6,6 @@ import { contractAddress, contractName } from '../utils/contract';
 // Using v2 contract (now the default)
 const contractNameToUse = contractName; // contractName is already 'tip-jar-v2'
 
-// API do Hiro para buscar transações (tem CORS habilitado)
-const STACKS_API_URL = 'https://api.hiro.so';
-
 interface TipperStats {
   address: string;
   totalSent: number;
