@@ -3,9 +3,8 @@ import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV, uintCV } from
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
-// Use v2 contract if available, otherwise fallback to v1
-const CONTRACT_VERSION = 'v2'; // Change to 'v1' to use old contract
-const contractNameToUse = CONTRACT_VERSION === 'v2' ? 'tip-jar-v2' : contractName;
+// Using v2 contract (now the default)
+const contractNameToUse = contractName; // contractName is already 'tip-jar-v2'
 
 // API do Hiro para buscar transações (tem CORS habilitado)
 const STACKS_API_URL = 'https://api.hiro.so';
@@ -31,8 +30,9 @@ export function TopTippers() {
         
         let uniqueSenders = new Set<string>();
         
-        // Se usar v2, buscar endereços diretamente do contrato
-        if (CONTRACT_VERSION === 'v2') {
+        // Usar v2 - buscar endereços diretamente do contrato
+        // O contrato v2 mantém uma lista de todos os tippers
+        {
           console.log('Usando contrato v2 - buscando tippers diretamente do contrato...');
           
           // Primeiro, obter o número total de tippers
@@ -80,39 +80,6 @@ export function TopTippers() {
               console.log(`Erro ao buscar tipper no índice ${i}:`, err.message);
               continue;
             }
-          }
-        } else {
-          // Fallback para v1: tentar usar API (pode falhar por CORS)
-          console.log('Usando contrato v1 - tentando buscar via API...');
-          const contractId = `${contractAddress}.${contractName}`;
-          const transactionsUrl = `${STACKS_API_URL}/extended/v1/tx/contract_call?contract_id=${contractId}&function_name=tip&limit=100`;
-          
-          try {
-            const transactionsResponse = await fetch(transactionsUrl, {
-              method: 'GET',
-              headers: { 'Accept': 'application/json' },
-            });
-            
-            if (transactionsResponse.ok) {
-              const transactionsData = await transactionsResponse.json();
-              const transactions = transactionsData.results || transactionsData || [];
-              
-              for (const tx of transactions) {
-                if (
-                  tx.tx_type === 'contract_call' &&
-                  tx.contract_call?.contract_id === contractId &&
-                  tx.contract_call?.function_name === 'tip' &&
-                  tx.sender_address
-                ) {
-                  uniqueSenders.add(tx.sender_address);
-                }
-              }
-            }
-          } catch (apiError: any) {
-            console.warn('API falhou, não é possível descobrir endereços automaticamente com v1:', apiError.message);
-            setError('Contrato v1 não suporta descoberta automática de tippers. Use o contrato v2 ou adicione endereços manualmente.');
-            setLoading(false);
-            return;
           }
         }
 
