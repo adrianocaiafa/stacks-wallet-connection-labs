@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV, uintCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -44,11 +44,13 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
           senderAddress: contractAddress,
         });
 
-        const counter = cvToJSON(counterResult.result || counterResult);
+        const counter = cvToJSON(counterResult);
         const totalTips = parseInt(counter.value || '0');
 
-        // Fetch tips (limited to last 10 for performance)
-        const tipsToFetch = Math.min(totalTips, 10);
+        console.log('Total tips:', totalTips);
+
+        // Fetch tips (limited to last 20 for performance)
+        const tipsToFetch = Math.min(totalTips, 20);
         const fetchedTips: Tip[] = [];
 
         for (let i = 0; i < tipsToFetch; i++) {
@@ -58,14 +60,18 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
               contractAddress,
               contractName,
               functionName: 'get-tip-received',
-              functionArgs: [recipientAddress, tipId],
+              functionArgs: [
+                standardPrincipalCV(recipientAddress),
+                uintCV(tipId)
+              ],
               network,
               senderAddress: contractAddress,
             });
 
-            const tipData = cvToJSON(tipResult.result || tipResult);
+            const tipData = cvToJSON(tipResult);
             
-            if (tipData.value) {
+            // Check if tip exists (not none)
+            if (tipData.type !== 'none' && tipData.value) {
               fetchedTips.push({
                 id: tipId,
                 sender: tipData.value.sender?.value || '',
@@ -74,14 +80,18 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
                 timestamp: parseInt(tipData.value.timestamp?.value || '0'),
               });
             }
-          } catch (err) {
+          } catch (err: any) {
+            console.log(`Tip ${tipId} não encontrado para ${recipientAddress}:`, err.message);
             // Skip if tip doesn't exist for this recipient
             continue;
           }
         }
 
+        console.log('Tips encontrados:', fetchedTips.length);
+
         setTips(fetchedTips);
       } catch (err: any) {
+        console.error('Erro ao buscar histórico:', err);
         setError(err.message || 'Erro ao carregar histórico');
       } finally {
         setLoading(false);

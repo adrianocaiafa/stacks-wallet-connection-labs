@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -20,17 +20,55 @@ export function TopTippers() {
       setError(null);
 
       try {
-        // Note: In a real implementation, you would need to track all tippers
-        // For now, this is a placeholder that shows the concept
-        // In production, you'd maintain a list of known tippers or use events
+        const network = createNetwork('mainnet');
         
-        // This is a simplified version - in production you'd need to:
-        // 1. Track all unique tippers from events or a separate mapping
-        // 2. Query stats for each known tipper
-        // 3. Sort by totalSent
+        // Lista de endereços conhecidos para verificar
+        // Em produção, você poderia usar eventos ou manter uma lista atualizada
+        const knownAddresses = [
+          'SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9', // Endereço do contrato (pode ter recebido tips)
+          // Adicione mais endereços conhecidos aqui
+        ];
+
+        const tipperStats: TipperStats[] = [];
+
+        // Buscar stats para cada endereço conhecido
+        for (const address of knownAddresses) {
+          try {
+            const statsResult = await fetchCallReadOnlyFunction({
+              contractAddress,
+              contractName,
+              functionName: 'get-tipper-stats',
+              functionArgs: [standardPrincipalCV(address)],
+              network,
+              senderAddress: contractAddress,
+            });
+
+            const stats = cvToJSON(statsResult);
+            
+            // Se o endereço tem stats (não é none)
+            if (stats.type !== 'none' && stats.value) {
+              tipperStats.push({
+                address,
+                totalSent: parseInt(stats.value['total-sent']?.value || '0') / 1000000,
+                count: parseInt(stats.value.count?.value || '0'),
+              });
+            }
+          } catch (err: any) {
+            console.log(`Erro ao buscar stats para ${address}:`, err.message);
+            // Continue para o próximo endereço
+            continue;
+          }
+        }
+
+        // Ordenar por total enviado (maior primeiro)
+        tipperStats.sort((a, b) => b.totalSent - a.totalSent);
+
+        // Limitar aos top 10
+        setTippers(tipperStats.slice(0, 10));
         
-        setTippers([]);
+        console.log('Top tippers encontrados:', tipperStats.length);
       } catch (err: any) {
+        console.error('Erro ao buscar top tippers:', err);
         setError(err.message || 'Erro ao carregar ranking');
       } finally {
         setLoading(false);
