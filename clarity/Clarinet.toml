@@ -13,6 +13,10 @@ epoch = "latest"
 path = "contracts/tip-jar-v2.clar"
 epoch = "latest"
 
+[contracts.gas-meter]
+path = "contracts/gas-meter.clar"
+epoch = "latest"
+
 [repl.analysis]
 passes = ["check_checker"]
 check_checker = { trusted_sender = false, trusted_caller = false, callee_filter = false }

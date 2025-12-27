@@ -21,6 +21,13 @@ export function Home() {
             icon="💰"
           />
         </Link>
+        <Link to="/gas-meter">
+          <Card
+            title="Gas Meter"
+            description="Mini-game de ações pagas. Execute ações repetíveis pagando pequenas taxas."
+            icon="⚡"
+          />
+        </Link>
       </div>
     </div>
   );

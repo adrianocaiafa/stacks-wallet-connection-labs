@@ -15,6 +15,9 @@ export function Header() {
           <Link to="/tip-jar" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Tip Jar
           </Link>
+          <Link to="/gas-meter" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Gas Meter
+          </Link>
           <WalletConnect />
         </nav>
       </div>
