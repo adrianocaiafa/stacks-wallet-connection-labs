@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV, uintCV } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
@@ -25,136 +25,76 @@ export function TopTippers() {
       try {
         const network = createNetwork('mainnet');
         
-        let uniqueSenders = new Set<string>();
+        console.log('Buscando tippers diretamente do contrato v2...');
         
-        // Usar v2 - buscar endereços diretamente do contrato
-        // O contrato v2 mantém uma lista de todos os tippers
-        {
-          console.log('Usando contrato v2 - buscando tippers diretamente do contrato...');
-          
-          // Primeiro, obter o número total de tippers
-          const tipperCountResult = await fetchCallReadOnlyFunction({
-            contractAddress,
-            contractName: contractNameToUse,
-            functionName: 'get-tipper-count',
-            functionArgs: [],
-            network,
-            senderAddress: contractAddress,
-          });
-          
-          const tipperCount = cvToJSON(tipperCountResult);
-          const totalTippers = parseInt(tipperCount.value || '0');
-          console.log('Total de tippers encontrados:', totalTippers);
-          
-          if (totalTippers === 0) {
-            setError('Nenhum tipper encontrado ainda.');
-            setLoading(false);
-            return;
-          }
-          
-          // Iterar sobre todos os índices de tippers e buscar suas stats
-          for (let i = 0; i < totalTippers; i++) {
-            try {
-              const tipperWithStatsResult = await fetchCallReadOnlyFunction({
-                contractAddress,
-                contractName: contractNameToUse,
-                functionName: 'get-tipper-at-index-with-stats',
-                functionArgs: [uintCV(i)],
-                network,
-                senderAddress: contractAddress,
-              });
-              
-              const tipperData = cvToJSON(tipperWithStatsResult);
-              
-              if (tipperData.type !== 'none' && tipperData.value) {
-                const address = tipperData.value.address?.value || tipperData.value.address;
-                if (address) {
-                  uniqueSenders.add(address);
-                  console.log(`Tipper ${i}: ${address}`);
-                }
-              }
-            } catch (err: any) {
-              console.log(`Erro ao buscar tipper no índice ${i}:`, err.message);
-              continue;
-            }
-          }
-        }
-
-        console.log('Endereços únicos encontrados:', Array.from(uniqueSenders));
+        // Primeiro, obter o número total de tippers
+        const tipperCountResult = await fetchCallReadOnlyFunction({
+          contractAddress,
+          contractName: contractNameToUse,
+          functionName: 'get-tipper-count',
+          functionArgs: [],
+          network,
+          senderAddress: contractAddress,
+        });
         
-        if (uniqueSenders.size === 0) {
-          setError('Nenhum tipper encontrado.');
+        const tipperCount = cvToJSON(tipperCountResult);
+        const totalTippers = parseInt(tipperCount.value || '0');
+        console.log('Total de tippers encontrados:', totalTippers);
+        
+        if (totalTippers === 0) {
+          setError('Nenhum tipper encontrado ainda.');
           setLoading(false);
           return;
         }
-
+        
         const tipperStats: TipperStats[] = [];
-
-        // Buscar stats para cada endereço que enviou tips
-        for (const address of Array.from(uniqueSenders)) {
+        
+        // Iterar sobre todos os índices de tippers e buscar suas stats
+        // A função get-tipper-at-index-with-stats já retorna address, total-sent e count
+        for (let i = 0; i < totalTippers; i++) {
           try {
-            const statsResult = await fetchCallReadOnlyFunction({
+            const tipperWithStatsResult = await fetchCallReadOnlyFunction({
               contractAddress,
               contractName: contractNameToUse,
-              functionName: 'get-tipper-stats',
-              functionArgs: [standardPrincipalCV(address)],
+              functionName: 'get-tipper-at-index-with-stats',
+              functionArgs: [uintCV(i)],
               network,
               senderAddress: contractAddress,
             });
-
-            const stats = cvToJSON(statsResult);
-            console.log(`Stats para ${address}:`, JSON.stringify(stats, null, 2));
             
-            // Se o endereço tem stats (não é none)
-            if (stats.type !== 'none' && stats.value) {
-              // O formato pode ser diferente, tentar várias possibilidades
-              let totalSentValue = '0';
-              let countValue = '0';
+            const tipperData = cvToJSON(tipperWithStatsResult);
+            console.log(`Tipper ${i} dados:`, JSON.stringify(tipperData, null, 2));
+            
+            // Verificar se retornou dados (não é none)
+            if (tipperData.type !== 'none' && tipperData.value) {
+              // Extrair os dados do tuple retornado
+              const value = tipperData.value;
               
-              // Tentar diferentes formatos de acesso aos dados
-              if (stats.value['total-sent']) {
-                totalSentValue = stats.value['total-sent'].value || stats.value['total-sent'] || '0';
-              } else if (stats.value.totalSent) {
-                totalSentValue = stats.value.totalSent.value || stats.value.totalSent || '0';
-              } else if (typeof stats.value === 'object') {
-                // Tentar acessar diretamente
-                const keys = Object.keys(stats.value);
-                console.log('Chaves disponíveis:', keys);
-                for (const key of keys) {
-                  if (key.includes('total') || key.includes('sent')) {
-                    const val = stats.value[key];
-                    totalSentValue = val?.value || val || '0';
-                  }
-                  if (key === 'count') {
-                    const val = stats.value[key];
-                    countValue = val?.value || val || '0';
-                  }
-                }
-              }
+              // O contrato retorna: {address: principal, total-sent: uint, count: uint}
+              const address = value.address?.value || value.address;
+              const totalSentValue = value['total-sent']?.value || value['total-sent'] || '0';
+              const countValue = value.count?.value || value.count || '0';
               
-              if (stats.value.count) {
-                countValue = stats.value.count.value || stats.value.count || '0';
-              }
-              
-              const totalSent = parseInt(String(totalSentValue)) / 1000000;
-              const count = parseInt(String(countValue));
-              
-              console.log(`Tipper ${address}: ${totalSent} STX (${totalSentValue} micro-STX), ${count} tips`);
-              
-              if (totalSent > 0 || count > 0) {
+              if (address) {
+                const totalSent = parseInt(String(totalSentValue)) / 1000000; // Converter de micro-STX para STX
+                const count = parseInt(String(countValue));
+                
+                console.log(`Tipper ${i}: ${address} - ${totalSent} STX (${totalSentValue} micro-STX), ${count} tips`);
+                
                 tipperStats.push({
-                  address,
+                  address: String(address),
                   totalSent,
                   count,
                 });
               }
             }
           } catch (err: any) {
-            console.log(`Erro ao buscar stats para ${address}:`, err.message);
-            // Continue para o próximo endereço
+            console.log(`Erro ao buscar tipper no índice ${i}:`, err.message);
             continue;
           }
         }
+        
+        console.log('Total de tippers processados:', tipperStats.length);
 
         // Ordenar por total enviado (maior primeiro)
         tipperStats.sort((a, b) => b.totalSent - a.totalSent);
