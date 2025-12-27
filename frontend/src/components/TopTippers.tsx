@@ -70,9 +70,10 @@ export function TopTippers() {
             }
           }
         } catch (apiError: any) {
-          console.warn('Erro ao buscar transações via API, usando fallback:', apiError.message);
+          console.warn('Erro ao buscar transações via API, usando fallback do contrato:', apiError.message);
           // Fallback: descobrir endereços usando o contrato diretamente
-          // Iterar sobre os tips e descobrir os senders através do map tips-sent
+          // Como não podemos iterar sobre todos os endereços, vamos usar uma abordagem diferente:
+          // Tentar descobrir endereços através de uma lista conhecida ou através de uma busca inteligente
           try {
             const counterResult = await fetchCallReadOnlyFunction({
               contractAddress,
@@ -88,38 +89,22 @@ export function TopTippers() {
             console.log('Total de tips encontrados:', totalTips);
             
             if (totalTips > 0) {
-              // Tentar descobrir endereços iterando sobre os tips
-              // Para cada tip-id, tentar descobrir o sender através de uma busca inteligente
-              // Nota: Esta é uma abordagem limitada, mas tenta descobrir alguns endereços
               console.log('Tentando descobrir endereços através do contrato...');
               
-              // Como não podemos iterar sobre todos os endereços possíveis,
-              // vamos tentar uma abordagem alternativa: buscar através do Stacks Explorer
-              // ou usar uma lista de endereços conhecidos
+              // Lista de endereços conhecidos para testar
+              // Em produção, você manteria uma lista atualizada ou usaria eventos
+              // Por enquanto, vamos tentar descobrir através de uma busca mais ampla
+              // testando endereços que podem ter interagido com o contrato
               
-              // Por enquanto, vamos tentar usar o Stacks Explorer API como fallback
-              try {
-                const explorerUrl = `https://api.stacks.co/extended/v1/address/${contractAddress}/transactions?limit=100`;
-                const explorerResponse = await fetch(explorerUrl);
-                if (explorerResponse.ok) {
-                  const explorerData = await explorerResponse.json();
-                  if (explorerData.results) {
-                    for (const tx of explorerData.results) {
-                      if (
-                        tx.tx_type === 'contract_call' &&
-                        tx.contract_call?.contract_id === contractId &&
-                        tx.contract_call?.function_name === 'tip' &&
-                        tx.sender_address
-                      ) {
-                        uniqueSenders.add(tx.sender_address);
-                        console.log('Encontrado tipper via Explorer:', tx.sender_address);
-                      }
-                    }
-                  }
-                }
-              } catch (explorerError: any) {
-                console.log('Explorer API também falhou:', explorerError.message);
-              }
+              // Abordagem: Como sabemos que há tips, vamos tentar descobrir os endereços
+              // testando uma lista de endereços conhecidos ou usando uma heurística
+              
+              // Nota: Esta é uma limitação do design atual do contrato
+              // Idealmente, o contrato teria uma função que lista todos os tippers
+              // ou usaríamos eventos do blockchain para rastrear
+              
+              console.log('Não foi possível descobrir endereços automaticamente via API.');
+              console.log('Sugestão: Adicione endereços conhecidos manualmente ou use eventos do blockchain.');
             }
           } catch (fallbackError: any) {
             console.error('Erro no fallback também:', fallbackError);
@@ -128,10 +113,55 @@ export function TopTippers() {
 
         console.log('Endereços únicos encontrados:', Array.from(uniqueSenders));
         
-        // Se não encontrou nenhum endereço, mostrar mensagem
+        // Se não encontrou nenhum endereço via API, tentar descobrir através do contrato
+        // usando uma lista de endereços conhecidos ou uma busca mais inteligente
         if (uniqueSenders.size === 0) {
-          setError('Não foi possível buscar endereços que enviaram tips. Tente novamente mais tarde.');
-          return;
+          console.log('Nenhum endereço encontrado via API. Tentando descobrir através do contrato...');
+          
+          // Lista de endereços conhecidos para testar
+          // Em produção, você manteria esta lista atualizada ou usaria eventos
+          const knownAddressesToTest: string[] = [
+            // Adicione endereços conhecidos aqui
+            // Por exemplo, endereços que você sabe que enviaram tips
+          ];
+          
+          // Se não há endereços conhecidos, vamos mostrar uma mensagem informativa
+          // mas ainda assim tentar buscar stats para endereços que possam ter interagido
+          if (knownAddressesToTest.length === 0) {
+            // Tentar descobrir através de uma busca mais ampla seria muito ineficiente
+            // Por enquanto, vamos mostrar uma mensagem informativa
+            setError('Não foi possível descobrir endereços automaticamente. As APIs externas estão indisponíveis. Para usar esta funcionalidade, adicione endereços conhecidos na lista "knownAddressesToTest" no código ou use eventos do blockchain.');
+            setLoading(false);
+            return;
+          }
+          
+          // Testar cada endereço conhecido
+          for (const address of knownAddressesToTest) {
+            try {
+              const statsResult = await fetchCallReadOnlyFunction({
+                contractAddress,
+                contractName,
+                functionName: 'get-tipper-stats',
+                functionArgs: [standardPrincipalCV(address)],
+                network,
+                senderAddress: contractAddress,
+              });
+              
+              const stats = cvToJSON(statsResult);
+              if (stats.type !== 'none' && stats.value) {
+                uniqueSenders.add(address);
+                console.log('Encontrado tipper conhecido:', address);
+              }
+            } catch (err: any) {
+              // Continue para o próximo endereço
+              continue;
+            }
+          }
+          
+          if (uniqueSenders.size === 0) {
+            setError('Não foi possível encontrar endereços que enviaram tips. As APIs estão indisponíveis e não há endereços conhecidos configurados.');
+            return;
+          }
         }
 
         const tipperStats: TipperStats[] = [];
