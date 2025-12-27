@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
-import { contractAddress } from '../utils/contract';
+import { contractAddress, gasMeterContractName } from '../utils/contract';
 
 interface UserStatsProps {
   userAddress: string;
@@ -28,7 +28,7 @@ export function UserStats({ userAddress }: UserStatsProps) {
 
         const statsResult = await fetchCallReadOnlyFunction({
           contractAddress,
-          contractName: 'gas-meter',
+          contractName: gasMeterContractName,
           functionName: 'get-user-stats',
           functionArgs: [standardPrincipalCV(userAddress)],
           network,

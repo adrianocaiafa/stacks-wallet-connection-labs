@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON, uintCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
-import { contractAddress } from '../utils/contract';
+import { contractAddress, gasMeterContractName } from '../utils/contract';
 
 interface LeaderboardEntry {
   address: string;
@@ -23,7 +23,7 @@ export function Leaderboard() {
         // Get total users
         const userCountResult = await fetchCallReadOnlyFunction({
           contractAddress,
-          contractName: 'gas-meter',
+          contractName: gasMeterContractName,
           functionName: 'get-user-count',
           functionArgs: [],
           network,
@@ -46,7 +46,7 @@ export function Leaderboard() {
           try {
             const userWithStatsResult = await fetchCallReadOnlyFunction({
               contractAddress,
-              contractName: 'gas-meter',
+              contractName: gasMeterContractName,
               functionName: 'get-user-at-index-with-stats',
               functionArgs: [uintCV(i)],
               network,

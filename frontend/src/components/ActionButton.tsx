@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode, stringAsciiCV, uintCV } from '@stacks/transactions';
-import { contractAddress, contractName } from '../utils/contract';
+import { contractAddress, gasMeterContractName } from '../utils/contract';
 
 interface ActionButtonProps {
   action: 'cast-spell' | 'upgrade' | 'claim-daily';
@@ -39,7 +39,7 @@ export function ActionButton({ action, label, fee, description, icon, onActionSe
 
       const transaction = await makeContractCall({
         contractAddress,
-        contractName: 'gas-meter', // TODO: Update with actual contract name
+        contractName: gasMeterContractName,
         functionName,
         functionArgs: [],
         senderKey: address, // This will be replaced by wallet signing

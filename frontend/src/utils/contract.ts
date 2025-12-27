@@ -1,5 +1,10 @@
 // Contract configuration
-// Mainnet contract address - using v2
+// Mainnet contract address
 export const contractAddress = 'SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9';
+
+// Tip Jar contract
 export const contractName = 'tip-jar-v2';
+
+// Gas Meter contract
+export const gasMeterContractName = 'gas-meter';
 

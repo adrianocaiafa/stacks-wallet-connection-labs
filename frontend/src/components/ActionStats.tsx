@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchCallReadOnlyFunction, cvToJSON, stringAsciiCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
-import { contractAddress } from '../utils/contract';
+import { contractAddress, gasMeterContractName } from '../utils/contract';
 
 export function ActionStats() {
   const [stats, setStats] = useState<Record<string, { count: number; totalFees: number }>>({});
@@ -20,7 +20,7 @@ export function ActionStats() {
           try {
             const statsResult = await fetchCallReadOnlyFunction({
               contractAddress,
-              contractName: 'gas-meter',
+              contractName: gasMeterContractName,
               functionName: 'get-action-stats',
               functionArgs: [stringAsciiCV(action)],
               network,
