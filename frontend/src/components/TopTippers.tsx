@@ -3,6 +3,9 @@ import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stack
 import { createNetwork } from '@stacks/network';
 import { contractAddress, contractName } from '../utils/contract';
 
+// API do Stacks para buscar transações
+const STACKS_API_URL = 'https://api.stacks.co';
+
 interface TipperStats {
   address: string;
   totalSent: number;
@@ -22,17 +25,44 @@ export function TopTippers() {
       try {
         const network = createNetwork('mainnet');
         
-        // Lista de endereços conhecidos para verificar
-        // Em produção, você poderia usar eventos ou manter uma lista atualizada
-        const knownAddresses = [
-          'SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9', // Endereço do contrato (pode ter recebido tips)
-          // Adicione mais endereços conhecidos aqui
-        ];
+        // Primeiro, buscar transações do contrato para descobrir quais endereços enviaram tips
+        const contractId = `${contractAddress}.${contractName}`;
+        // Buscar transações que chamam este contrato
+        const transactionsUrl = `${STACKS_API_URL}/extended/v1/address/${contractAddress}/transactions?limit=100`;
+        
+        console.log('Buscando transações do contrato...', transactionsUrl);
+        const transactionsResponse = await fetch(transactionsUrl);
+        const transactionsData = await transactionsResponse.json();
+        
+        console.log('Dados de transações recebidos:', transactionsData);
+        
+        // Extrair endereços únicos que chamaram a função 'tip'
+        const uniqueSenders = new Set<string>();
+        
+        if (transactionsData.results) {
+          for (const tx of transactionsData.results) {
+            // Verificar se é uma chamada de contrato para a função 'tip'
+            if (
+              tx.tx_type === 'contract_call' &&
+              tx.contract_call &&
+              (tx.contract_call.contract_id === contractId || 
+               (tx.contract_call.contract_address === contractAddress && 
+                tx.contract_call.contract_name === contractName)) &&
+              tx.contract_call.function_name === 'tip' &&
+              tx.sender_address
+            ) {
+              uniqueSenders.add(tx.sender_address);
+              console.log('Encontrado tipper:', tx.sender_address);
+            }
+          }
+        }
+
+        console.log('Endereços únicos encontrados:', Array.from(uniqueSenders));
 
         const tipperStats: TipperStats[] = [];
 
-        // Buscar stats para cada endereço conhecido
-        for (const address of knownAddresses) {
+        // Buscar stats para cada endereço que enviou tips
+        for (const address of Array.from(uniqueSenders)) {
           try {
             const statsResult = await fetchCallReadOnlyFunction({
               contractAddress,
@@ -44,14 +74,51 @@ export function TopTippers() {
             });
 
             const stats = cvToJSON(statsResult);
+            console.log(`Stats para ${address}:`, JSON.stringify(stats, null, 2));
             
             // Se o endereço tem stats (não é none)
             if (stats.type !== 'none' && stats.value) {
-              tipperStats.push({
-                address,
-                totalSent: parseInt(stats.value['total-sent']?.value || '0') / 1000000,
-                count: parseInt(stats.value.count?.value || '0'),
-              });
+              // O formato pode ser diferente, tentar várias possibilidades
+              let totalSentValue = '0';
+              let countValue = '0';
+              
+              // Tentar diferentes formatos de acesso aos dados
+              if (stats.value['total-sent']) {
+                totalSentValue = stats.value['total-sent'].value || stats.value['total-sent'] || '0';
+              } else if (stats.value.totalSent) {
+                totalSentValue = stats.value.totalSent.value || stats.value.totalSent || '0';
+              } else if (typeof stats.value === 'object') {
+                // Tentar acessar diretamente
+                const keys = Object.keys(stats.value);
+                console.log('Chaves disponíveis:', keys);
+                for (const key of keys) {
+                  if (key.includes('total') || key.includes('sent')) {
+                    const val = stats.value[key];
+                    totalSentValue = val?.value || val || '0';
+                  }
+                  if (key === 'count') {
+                    const val = stats.value[key];
+                    countValue = val?.value || val || '0';
+                  }
+                }
+              }
+              
+              if (stats.value.count) {
+                countValue = stats.value.count.value || stats.value.count || '0';
+              }
+              
+              const totalSent = parseInt(String(totalSentValue)) / 1000000;
+              const count = parseInt(String(countValue));
+              
+              console.log(`Tipper ${address}: ${totalSent} STX (${totalSentValue} micro-STX), ${count} tips`);
+              
+              if (totalSent > 0 || count > 0) {
+                tipperStats.push({
+                  address,
+                  totalSent,
+                  count,
+                });
+              }
             }
           } catch (err: any) {
             console.log(`Erro ao buscar stats para ${address}:`, err.message);
@@ -66,7 +133,7 @@ export function TopTippers() {
         // Limitar aos top 10
         setTippers(tipperStats.slice(0, 10));
         
-        console.log('Top tippers encontrados:', tipperStats.length);
+        console.log('Top tippers encontrados:', tipperStats.length, tipperStats);
       } catch (err: any) {
         console.error('Erro ao buscar top tippers:', err);
         setError(err.message || 'Erro ao carregar ranking');
