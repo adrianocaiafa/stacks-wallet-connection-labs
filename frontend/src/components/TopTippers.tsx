@@ -66,14 +66,15 @@ export function TopTippers() {
             console.log(`Tipper ${i} dados:`, JSON.stringify(tipperData, null, 2));
             
             // Verificar se retornou dados (não é none)
+            // O formato é: {type: "optional", value: {type: "tuple", value: {...}}}
             if (tipperData.type !== 'none' && tipperData.value) {
-              // Extrair os dados do tuple retornado
-              const value = tipperData.value;
+              // O tuple está dentro de tipperData.value.value
+              const tupleValue = tipperData.value.value || tipperData.value;
               
               // O contrato retorna: {address: principal, total-sent: uint, count: uint}
-              const address = value.address?.value || value.address;
-              const totalSentValue = value['total-sent']?.value || value['total-sent'] || '0';
-              const countValue = value.count?.value || value.count || '0';
+              const address = tupleValue.address?.value || tupleValue.address;
+              const totalSentValue = tupleValue['total-sent']?.value || tupleValue['total-sent'] || '0';
+              const countValue = tupleValue.count?.value || tupleValue.count || '0';
               
               if (address) {
                 const totalSent = parseInt(String(totalSentValue)) / 1000000; // Converter de micro-STX para STX
@@ -86,7 +87,11 @@ export function TopTippers() {
                   totalSent,
                   count,
                 });
+              } else {
+                console.log(`Tipper ${i}: endereço não encontrado nos dados`);
               }
+            } else {
+              console.log(`Tipper ${i}: retornou none ou sem dados`);
             }
           } catch (err: any) {
             console.log(`Erro ao buscar tipper no índice ${i}:`, err.message);
