@@ -67,38 +67,38 @@ export function TopTippers() {
             
             // Verificar se retornou dados (não é none)
             // O formato é: {type: "optional", value: {type: "tuple", value: {...}}}
+            // Baseado no log: tipperData.value.value contém o tuple real
             if (tipperData.type !== 'none' && tipperData.value) {
               // O tuple está dentro de tipperData.value.value
-              // Primeiro tenta value.value (quando há optional wrapper), depois value direto
-              let tupleValue = tipperData.value.value;
+              const tupleValue = tipperData.value.value;
               
-              // Se não tem value.value, tenta value direto
-              if (!tupleValue) {
-                tupleValue = tipperData.value;
-              }
-              
-              console.log(`Tuple value extraído:`, JSON.stringify(tupleValue, null, 2));
-              
-              // O contrato retorna: {address: principal, total-sent: uint, count: uint}
-              const address = tupleValue?.address?.value || tupleValue?.address;
-              const totalSentValue = tupleValue?.['total-sent']?.value || tupleValue?.['total-sent'] || '0';
-              const countValue = tupleValue?.count?.value || tupleValue?.count || '0';
-              
-              console.log(`Extraído - address: ${address}, total-sent: ${totalSentValue}, count: ${countValue}`);
-              
-              if (address) {
-                const totalSent = parseInt(String(totalSentValue)) / 1000000; // Converter de micro-STX para STX
-                const count = parseInt(String(countValue));
+              if (tupleValue) {
+                console.log(`Tuple value extraído:`, JSON.stringify(tupleValue, null, 2));
                 
-                console.log(`Tipper ${i}: ${address} - ${totalSent} STX (${totalSentValue} micro-STX), ${count} tips`);
+                // O contrato retorna: {address: principal, total-sent: uint, count: uint}
+                // Acessar diretamente: tupleValue.address.value, tupleValue['total-sent'].value, etc.
+                const address = tupleValue.address?.value || tupleValue.address;
+                const totalSentValue = tupleValue['total-sent']?.value || tupleValue['total-sent'] || '0';
+                const countValue = tupleValue.count?.value || tupleValue.count || '0';
                 
-                tipperStats.push({
-                  address: String(address),
-                  totalSent,
-                  count,
-                });
+                console.log(`Extraído - address: ${address}, total-sent: ${totalSentValue}, count: ${countValue}`);
+                
+                if (address) {
+                  const totalSent = parseInt(String(totalSentValue)) / 1000000; // Converter de micro-STX para STX
+                  const count = parseInt(String(countValue));
+                  
+                  console.log(`Tipper ${i}: ${address} - ${totalSent} STX (${totalSentValue} micro-STX), ${count} tips`);
+                  
+                  tipperStats.push({
+                    address: String(address),
+                    totalSent,
+                    count,
+                  });
+                } else {
+                  console.log(`Tipper ${i}: endereço não encontrado nos dados. TupleValue:`, tupleValue);
+                }
               } else {
-                console.log(`Tipper ${i}: endereço não encontrado nos dados. TupleValue:`, tupleValue);
+                console.log(`Tipper ${i}: tupleValue é null/undefined. tipperData.value:`, tipperData.value);
               }
             } else {
               console.log(`Tipper ${i}: retornou none ou sem dados. Type: ${tipperData.type}, hasValue: ${!!tipperData.value}`);
