@@ -58,11 +58,25 @@ export function RaffleHistory() {
 
             if (historyData.type !== 'none' && historyData.value) {
               const hValue = historyData.value.value || historyData.value;
+              
+              // Parse winner - can be principal type
+              let winnerValue: string = '';
+              if (hValue.winner) {
+                if (typeof hValue.winner === 'string') {
+                  winnerValue = hValue.winner;
+                } else if (hValue.winner.value) {
+                  const winnerData = hValue.winner.value;
+                  winnerValue = typeof winnerData === 'string' ? winnerData : String(winnerData.value || winnerData);
+                } else {
+                  winnerValue = String(hValue.winner);
+                }
+              }
+              
               historyItems.push({
                 round,
-                winner: hValue.winner?.value || hValue.winner,
-                ticketCount: parseInt(hValue['ticket-count']?.value || hValue.ticketCount?.value || '0'),
-                totalTickets: parseInt(hValue['total-tickets']?.value || hValue.totalTickets?.value || '0'),
+                winner: winnerValue,
+                ticketCount: parseInt(String(hValue['ticket-count']?.value || hValue.ticketCount?.value || hValue.ticketCount || '0')),
+                totalTickets: parseInt(String(hValue['total-tickets']?.value || hValue.totalTickets?.value || hValue.totalTickets || '0')),
               });
             }
           } catch (err) {
