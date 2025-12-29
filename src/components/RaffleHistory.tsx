@@ -123,7 +123,11 @@ export function RaffleHistory() {
                 <div>
                   <span className="text-lg font-semibold text-gray-900">Round {item.round}</span>
                   <p className="text-sm text-gray-600 mt-1">
-                    🏆 Vencedor: <span className="font-medium">{item.winner.slice(0, 8)}...{item.winner.slice(-6)}</span>
+                    🏆 Vencedor: <span className="font-medium">
+                      {item.winner && typeof item.winner === 'string' 
+                        ? `${item.winner.slice(0, 8)}...${item.winner.slice(-6)}`
+                        : 'N/A'}
+                    </span>
                   </p>
                 </div>
                 <div className="text-right">
