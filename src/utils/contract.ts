@@ -17,3 +17,6 @@ export const questSystemContractName = 'quest-system';
 // Voting System contract
 export const votingSystemContractName = 'voting-system';
 
+// Daily Check-in contract
+export const dailyCheckInContractName = 'daily-check-in';
+
