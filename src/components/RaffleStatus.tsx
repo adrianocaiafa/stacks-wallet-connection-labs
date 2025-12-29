@@ -36,12 +36,28 @@ export function RaffleStatus() {
         const statusData = cvToJSON(statusResult);
         const value = statusData.value || statusData;
 
+        // Parse winner - can be optional principal or direct value
+        let winnerValue: string | null = null;
+        if (value.winner) {
+          if (value.winner.type === 'none' || value.winner === 'none') {
+            winnerValue = null;
+          } else if (typeof value.winner === 'string') {
+            winnerValue = value.winner;
+          } else if (value.winner.value) {
+            // Handle principal type with nested value
+            const winnerData = value.winner.value;
+            winnerValue = typeof winnerData === 'string' ? winnerData : (winnerData.value || String(winnerData));
+          } else {
+            winnerValue = String(value.winner);
+          }
+        }
+
         setStatus({
-          round: parseInt(value.round?.value || '0'),
-          isOpen: value['is-open']?.value === true || value.isOpen === true,
-          totalTickets: parseInt(value['total-tickets']?.value || value.totalTickets?.value || '0'),
-          participantCount: parseInt(value['participant-count']?.value || value.participantCount?.value || '0'),
-          winner: value.winner?.value || null,
+          round: parseInt(String(value.round?.value || value.round || '0')),
+          isOpen: value['is-open']?.value === true || value.isOpen?.value === true || value.isOpen === true,
+          totalTickets: parseInt(String(value['total-tickets']?.value || value.totalTickets?.value || value.totalTickets || '0')),
+          participantCount: parseInt(String(value['participant-count']?.value || value.participantCount?.value || value.participantCount || '0')),
+          winner: winnerValue,
         });
       } catch (err: any) {
         setError(err.message || 'Erro ao carregar status do round');
@@ -103,7 +119,7 @@ export function RaffleStatus() {
         </div>
       </div>
 
-      {status.winner && (
+      {status.winner && typeof status.winner === 'string' && (
         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-gray-600 mb-1">Vencedor do Round {status.round}:</p>
           <p className="font-semibold text-gray-900">
