@@ -7,9 +7,9 @@ import { PollCard } from './PollCard';
 export function ActivePoll() {
   const [activePollId, setActivePollId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchActivePoll = async () => {
+  const fetchActivePoll = async () => {
       setLoading(true);
       try {
         const network = createNetwork('mainnet');
@@ -36,12 +36,12 @@ export function ActivePoll() {
         setActivePollId(null);
       } finally {
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
+  useEffect(() => {
     fetchActivePoll();
-    const interval = setInterval(fetchActivePoll, 15000); // Atualiza a cada 15 segundos
-    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -63,8 +63,20 @@ export function ActivePoll() {
 
   return (
     <div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">📊 Enquete Ativa</h3>
-      <PollCard pollId={activePollId} />
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold text-gray-900">📊 Enquete Ativa</h3>
+        <button
+          onClick={() => {
+            setIsRefreshing(true);
+            fetchActivePoll();
+          }}
+          disabled={isRefreshing || loading}
+          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+        >
+          {isRefreshing ? '🔄' : '↻'} {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+        </button>
+      </div>
+      {activePollId !== null && <PollCard pollId={activePollId} />}
     </div>
   );
 }
