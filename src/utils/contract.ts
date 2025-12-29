@@ -14,3 +14,6 @@ export const raffleContractName = 'raffle';
 // Quest System contract
 export const questSystemContractName = 'quest-system';
 
+// Voting System contract
+export const votingSystemContractName = 'voting-system';
+
