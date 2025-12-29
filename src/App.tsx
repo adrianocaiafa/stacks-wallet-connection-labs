@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import { TipJar } from './pages/TipJar';
 import { GasMeter } from './pages/GasMeter';
 import { Raffle } from './pages/Raffle';
+import { QuestSystem } from './pages/QuestSystem';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -15,6 +16,7 @@ function App() {
           <Route path="/tip-jar" element={<TipJar />} />
           <Route path="/gas-meter" element={<GasMeter />} />
           <Route path="/raffle" element={<Raffle />} />
+          <Route path="/quest-system" element={<QuestSystem />} />
         </Routes>
       </Layout>
     </Router>
