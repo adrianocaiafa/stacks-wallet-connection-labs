@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { VotingStats } from '../components/VotingStats';
-import { ActivePoll } from '../components/ActivePoll';
+import { ActivePolls } from '../components/ActivePolls';
 import { CreatePollForm } from '../components/CreatePollForm';
 import { PollHistory } from '../components/PollHistory';
 
@@ -26,10 +26,12 @@ export function VotingSystem() {
           <VotingStats />
         </div>
 
+        <div className="mb-6">
+          <ActivePolls />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div>
-            <ActivePoll />
-          </div>
           <div>
             {showCreateForm ? (
               <div>
