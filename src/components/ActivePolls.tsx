@@ -111,11 +111,17 @@ export function ActivePolls() {
       {activePollIds.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <p className="text-gray-600">Nenhuma enquete ativa no momento.</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Verificando as últimas 50 enquetes. Se houver mais enquetes abertas, elas podem não aparecer aqui.
+          </p>
         </div>
       ) : (
         <div className="space-y-6">
           {activePollIds.map((pollId) => (
-            <PollCard key={pollId} pollId={pollId} />
+            <div key={pollId}>
+              <div className="mb-2 text-sm text-gray-500 font-medium">Enquete #{pollId}</div>
+              <PollCard pollId={pollId} />
+            </div>
           ))}
         </div>
       )}
