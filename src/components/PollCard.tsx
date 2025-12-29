@@ -233,9 +233,9 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
                     {option.votes} votos ({option.percentage.toFixed(1)}%)
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                   <div
-                    className="bg-blue-500 h-2 rounded-full transition-all"
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-2.5 rounded-full transition-all duration-500"
                     style={{ width: `${option.percentage}%` }}
                   />
                 </div>
