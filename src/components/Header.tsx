@@ -21,6 +21,9 @@ export function Header() {
           <Link to="/raffle" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Raffle
           </Link>
+          <Link to="/quest-system" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Quests
+          </Link>
           <WalletConnect />
         </nav>
       </div>
