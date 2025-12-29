@@ -17,6 +17,13 @@ Portal React para interagir com contratos Clarity na rede Stacks, desenvolvido p
 - Veja suas estatísticas e o leaderboard
 - Gera muitas transações pequenas para medir uso e fees
 
+### Raffle / Sorteio
+- Sistema de rifa/sorteio on-chain com alto engajamento
+- Compre tickets (0.01 STX por ticket)
+- Participe de rounds múltiplos
+- Veja histórico de rounds e vencedores
+- Cada compra de ticket gera uma transação (fees)
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -46,8 +53,9 @@ Portal React para interagir com contratos Clarity na rede Stacks, desenvolvido p
 - Clarity smart contracts
 - Clarinet para desenvolvimento e testes
 - Contratos deployados na mainnet:
-  - `tip-jar-v2`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.tip-jar-v2`
-  - `gas-meter`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.gas-meter`
+- `tip-jar-v2`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.tip-jar-v2`
+- `gas-meter`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.gas-meter`
+- `raffle`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.raffle`
 
 ## 🚀 Como Executar
 
