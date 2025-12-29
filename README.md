@@ -32,6 +32,14 @@ Portal React para interagir com contratos Clarity na rede Stacks, desenvolvido p
 - Leaderboard de usuários por pontos
 - Cada quest gera uma transação (fees)
 
+### Voting System
+- Sistema de votação on-chain para decisões da comunidade
+- Crie enquetes com múltiplas opções (admin)
+- Vote em enquetes ativas (0.01 STX por voto)
+- Veja resultados em tempo real com gráficos
+- Histórico de todas as enquetes
+- Cada voto gera uma transação (fees)
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -65,6 +73,7 @@ Portal React para interagir com contratos Clarity na rede Stacks, desenvolvido p
 - `gas-meter`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.gas-meter`
 - `raffle`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.raffle`
 - `quest-system`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.quest-system`
+- `voting-system`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.voting-system`
 
 ## 🚀 Como Executar
 
