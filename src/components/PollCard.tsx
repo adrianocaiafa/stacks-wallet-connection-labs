@@ -252,9 +252,9 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
         <button
           onClick={handleVote}
           disabled={isVoting || selectedOption === null}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+          className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md"
         >
-          {isVoting ? 'Votando...' : `Votar (0.01 STX)`}
+          {isVoting ? 'Votando...' : `🗳️ Votar (0.01 STX)`}
         </button>
       )}
 

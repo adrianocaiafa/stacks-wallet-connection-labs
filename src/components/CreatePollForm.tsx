@@ -138,9 +138,9 @@ export function CreatePollForm({ onPollCreated }: { onPollCreated?: () => void }
         <button
           onClick={handleCreatePoll}
           disabled={isCreating || !title.trim() || options.filter(opt => opt.trim().length > 0).length < 2}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+          className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md"
         >
-          {isCreating ? 'Criando...' : 'Criar Enquete'}
+          {isCreating ? 'Criando...' : '➕ Criar Enquete'}
         </button>
       </div>
     </div>
