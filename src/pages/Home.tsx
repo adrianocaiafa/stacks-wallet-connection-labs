@@ -49,6 +49,13 @@ export function Home() {
             icon="🗳️"
           />
         </Link>
+        <Link to="/daily-check-in">
+          <Card
+            title="Daily Check-in"
+            description="Sistema de check-in diário on-chain com rastreamento de sequências e recompensas."
+            icon="✅"
+          />
+        </Link>
       </div>
     </div>
   );
