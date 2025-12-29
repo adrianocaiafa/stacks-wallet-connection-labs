@@ -68,7 +68,7 @@ export function ActivePolls() {
         }
       }
 
-      setActivePollIds(activePolls.reverse()); // Most recent first
+      setActivePollIds(activePolls); // Already in reverse order (most recent first)
     } catch (err: any) {
       console.error('Erro ao buscar enquetes ativas:', err);
       setActivePollIds([]);
