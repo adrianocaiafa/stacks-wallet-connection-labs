@@ -27,6 +27,9 @@ export function Header() {
           <Link to="/voting-system" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Voting
           </Link>
+          <Link to="/daily-check-in" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Check-in
+          </Link>
           <WalletConnect />
         </nav>
       </div>
