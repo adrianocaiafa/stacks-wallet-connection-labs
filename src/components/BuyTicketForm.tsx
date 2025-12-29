@@ -35,7 +35,11 @@ export function BuyTicketForm() {
         });
 
         const ticketsData = cvToJSON(ticketsResult);
-        const count = parseInt(ticketsData.value || '0');
+        // Handle both direct value and nested value formats
+        const countValue = ticketsData.value !== undefined 
+          ? ticketsData.value 
+          : (ticketsData.type === 'uint' ? ticketsData : '0');
+        const count = parseInt(String(countValue || '0'));
         setUserTickets(count);
       } catch (err) {
         console.error('Erro ao buscar tickets do usuário:', err);
