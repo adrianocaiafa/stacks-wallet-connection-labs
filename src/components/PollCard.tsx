@@ -68,17 +68,23 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
           const optionsList = value.options?.value || value.options || [];
           const optionCount = parseInt(String(value['option-count']?.value || value.optionCount?.value || optionsList.length || '0'));
 
-          // Fetch vote counts for each option
+          // Fetch vote counts for each option (with delay to avoid rate limiting)
           const optionVotesPromises = [];
           for (let i = 0; i < optionCount; i++) {
             optionVotesPromises.push(
-              fetchCallReadOnlyFunction({
-                contractAddress,
-                contractName: votingSystemContractName,
-                functionName: 'get-option-votes',
-                functionArgs: [uintCV(pollId), uintCV(i)],
-                network,
-                senderAddress: contractAddress,
+              new Promise((resolve) => {
+                setTimeout(() => {
+                  resolve(
+                    fetchCallReadOnlyFunction({
+                      contractAddress,
+                      contractName: votingSystemContractName,
+                      functionName: 'get-option-votes',
+                      functionArgs: [uintCV(pollId), uintCV(i)],
+                      network,
+                      senderAddress: contractAddress,
+                    })
+                  );
+                }, i * 100); // 100ms delay between requests
               })
             );
           }
