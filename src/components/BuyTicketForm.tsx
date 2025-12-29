@@ -62,7 +62,11 @@ export function BuyTicketForm() {
         });
 
         const priceData = cvToJSON(priceResult);
-        const priceMicroStx = parseInt(priceData.value || '10000');
+        // Handle both direct value and nested value formats
+        const priceValue = priceData.value !== undefined 
+          ? priceData.value 
+          : (priceData.type === 'uint' ? priceData : '10000');
+        const priceMicroStx = parseInt(String(priceValue || '10000'));
         setTicketPrice(priceMicroStx / 1000000);
       } catch (err) {
         console.error('Erro ao buscar preço do ticket:', err);
