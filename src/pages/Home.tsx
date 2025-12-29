@@ -28,6 +28,13 @@ export function Home() {
             icon="⚡"
           />
         </Link>
+        <Link to="/raffle">
+          <Card
+            title="Raffle / Sorteio"
+            description="Compre tickets e participe do sorteio on-chain. Alto engajamento e gamificação."
+            icon="🎲"
+          />
+        </Link>
       </div>
     </div>
   );
