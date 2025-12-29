@@ -8,3 +8,6 @@ export const contractName = 'tip-jar-v2';
 // Gas Meter contract
 export const gasMeterContractName = 'gas-meter';
 
+// Raffle contract
+export const raffleContractName = 'raffle';
+
