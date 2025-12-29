@@ -8,9 +8,9 @@ export function PollHistory() {
   const [polls, setPolls] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPollId, setSelectedPollId] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchPollCount = async () => {
+  const fetchPollCount = async () => {
       setLoading(true);
       try {
         const network = createNetwork('mainnet');
@@ -40,12 +40,12 @@ export function PollHistory() {
         console.error('Erro ao buscar histórico de enquetes:', err);
       } finally {
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
+  useEffect(() => {
     fetchPollCount();
-    const interval = setInterval(fetchPollCount, 30000); // Atualiza a cada 30 segundos
-    return () => clearInterval(interval);
   }, []);
 
   if (loading && polls.length === 0) {
@@ -68,8 +68,22 @@ export function PollHistory() {
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200">
       <div className="p-6 border-b border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-900">📜 Histórico de Enquetes</h3>
-        <p className="text-sm text-gray-500 mt-1">Últimas 10 enquetes</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">📜 Histórico de Enquetes</h3>
+            <p className="text-sm text-gray-500 mt-1">Últimas 10 enquetes</p>
+          </div>
+          <button
+            onClick={() => {
+              setIsRefreshing(true);
+              fetchPollCount();
+            }}
+            disabled={isRefreshing || loading}
+            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            {isRefreshing ? '🔄' : '↻'} {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+          </button>
+        </div>
       </div>
       <div className="divide-y divide-gray-200">
         {polls.map((pollId) => (
