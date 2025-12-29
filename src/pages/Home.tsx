@@ -35,6 +35,13 @@ export function Home() {
             icon="🎲"
           />
         </Link>
+        <Link to="/quest-system">
+          <Card
+            title="Quest System"
+            description="Complete quests, ganhe pontos e suba de nível. Sistema de missões on-chain com alto engajamento."
+            icon="⚔️"
+          />
+        </Link>
       </div>
     </div>
   );
