@@ -42,6 +42,13 @@ export function Home() {
             icon="⚔️"
           />
         </Link>
+        <Link to="/voting-system">
+          <Card
+            title="Voting System"
+            description="Sistema de votação on-chain para decisões da comunidade. Cada voto gera uma transação."
+            icon="🗳️"
+          />
+        </Link>
       </div>
     </div>
   );
