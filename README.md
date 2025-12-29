@@ -24,6 +24,14 @@ Portal React para interagir com contratos Clarity na rede Stacks, desenvolvido p
 - Veja histórico de rounds e vencedores
 - Cada compra de ticket gera uma transação (fees)
 
+### Quest System
+- Sistema de quests/missões on-chain com alto engajamento
+- Complete quests diárias, semanais e especiais
+- Ganhe pontos e suba de nível (Quest Master)
+- Sistema de cooldown para quests recorrentes
+- Leaderboard de usuários por pontos
+- Cada quest gera uma transação (fees)
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -56,6 +64,7 @@ Portal React para interagir com contratos Clarity na rede Stacks, desenvolvido p
 - `tip-jar-v2`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.tip-jar-v2`
 - `gas-meter`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.gas-meter`
 - `raffle`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.raffle`
+- `quest-system`: `SP1RSWVNQ7TW839J8V22E9JBHTW6ZQXSNR67HTZE9.quest-system`
 
 ## 🚀 Como Executar
 
