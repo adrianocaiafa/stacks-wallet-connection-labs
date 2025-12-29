@@ -32,7 +32,6 @@ export function VotingSystem() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <div>
-          <div>
             {showCreateForm ? (
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -65,6 +64,9 @@ export function VotingSystem() {
                 </button>
               </div>
             )}
+          </div>
+          <div>
+            {/* Espaço reservado para futuras funcionalidades */}
           </div>
         </div>
 
