@@ -44,19 +44,10 @@ export function ActivePoll() {
     fetchActivePoll();
   }, []);
 
-  if (loading) {
+  if (loading && activePollId === null) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
         <div className="text-center text-gray-500">Carregando enquete ativa...</div>
-      </div>
-    );
-  }
-
-  if (activePollId === null) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">📊 Enquete Ativa</h3>
-        <p className="text-gray-600">Nenhuma enquete ativa no momento.</p>
       </div>
     );
   }
@@ -76,7 +67,13 @@ export function ActivePoll() {
           {isRefreshing ? '🔄' : '↻'} {isRefreshing ? 'Atualizando...' : 'Atualizar'}
         </button>
       </div>
-      {activePollId !== null && <PollCard pollId={activePollId} />}
+      {activePollId === null ? (
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <p className="text-gray-600">Nenhuma enquete ativa no momento.</p>
+        </div>
+      ) : (
+        <PollCard pollId={activePollId} />
+      )}
     </div>
   );
 }
