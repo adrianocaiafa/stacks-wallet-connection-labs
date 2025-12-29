@@ -18,6 +18,9 @@ export function Header() {
           <Link to="/gas-meter" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Gas Meter
           </Link>
+          <Link to="/raffle" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Raffle
+          </Link>
           <WalletConnect />
         </nav>
       </div>
