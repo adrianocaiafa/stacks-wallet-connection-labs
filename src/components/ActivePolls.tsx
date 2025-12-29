@@ -34,12 +34,14 @@ export function ActivePolls() {
         return;
       }
 
-      // Check last 20 polls to find open ones (for performance)
+      // Check last 50 polls to find open ones (for performance)
       const activePolls: number[] = [];
-      const startId = Math.max(0, pollCount - 20);
+      const checkLimit = Math.min(pollCount, 50);
+      const startId = Math.max(0, pollCount - checkLimit);
       
+      // Fetch polls from most recent to oldest
       // Fetch polls sequentially with delay to avoid rate limiting
-      for (let i = startId; i < pollCount; i++) {
+      for (let i = pollCount - 1; i >= startId; i--) {
         try {
           await new Promise(resolve => setTimeout(resolve, 100)); // Delay between requests
           
