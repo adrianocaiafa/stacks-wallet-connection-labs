@@ -11,7 +11,8 @@ export function BuyTicketForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [userTickets, setUserTickets] = useState(0);
-  const [ticketPrice, setTicketPrice] = useState(0.01);
+  // Ticket price is constant: 0.01 STX (10000 micro-STX) - no need to fetch from contract
+  const ticketPrice = 0.01;
 
   useEffect(() => {
     const fetchUserTickets = async () => {
@@ -47,35 +48,6 @@ export function BuyTicketForm() {
     return () => clearInterval(interval);
   }, [isConnected, address]);
 
-  useEffect(() => {
-    const fetchTicketPrice = async () => {
-      try {
-        const network = createNetwork('mainnet');
-        const { fetchCallReadOnlyFunction, cvToJSON } = await import('@stacks/transactions');
-
-        const priceResult = await fetchCallReadOnlyFunction({
-          contractAddress,
-          contractName: raffleContractName,
-          functionName: 'get-ticket-price',
-          functionArgs: [],
-          network,
-          senderAddress: contractAddress,
-        });
-
-        const priceData = cvToJSON(priceResult);
-        // Handle both direct value and nested value formats
-        const priceValue = priceData.value !== undefined 
-          ? priceData.value 
-          : (priceData.type === 'uint' ? priceData : '10000');
-        const priceMicroStx = parseInt(String(priceValue || '10000'));
-        setTicketPrice(priceMicroStx / 1000000);
-      } catch (err) {
-        console.error('Erro ao buscar preço do ticket:', err);
-      }
-    };
-
-    fetchTicketPrice();
-  }, []);
 
   const handleBuyTickets = async () => {
     if (!isConnected || !address) {
