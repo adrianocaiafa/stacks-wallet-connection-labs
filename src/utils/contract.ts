@@ -11,3 +11,6 @@ export const gasMeterContractName = 'gas-meter';
 // Raffle contract
 export const raffleContractName = 'raffle';
 
+// Quest System contract
+export const questSystemContractName = 'quest-system';
+
