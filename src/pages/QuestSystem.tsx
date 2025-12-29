@@ -13,9 +13,9 @@ export function QuestSystem() {
             Complete quests, ganhe pontos e suba de nível! Cada quest gera uma transação on-chain.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
-            <span>📅 Daily: 0.01 STX • 10 pts</span>
-            <span>📆 Weekly: 0.05 STX • 50 pts</span>
-            <span>⭐ Special: 0.02 STX • 20 pts</span>
+            <span>📅 Daily: 0.01 STX • 10 pts • Cooldown: 144 quests</span>
+            <span>📆 Weekly: 0.05 STX • 50 pts • Cooldown: 1008 quests</span>
+            <span>⭐ Special: 0.02 STX • 20 pts • Sem cooldown</span>
           </div>
         </div>
 
