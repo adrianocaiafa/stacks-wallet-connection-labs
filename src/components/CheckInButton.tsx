@@ -1,0 +1,154 @@
+import { useState, useEffect } from 'react';
+import { useAppKit } from '@reown/appkit/react';
+import { createNetwork } from '@stacks/network';
+import { makeContractCall, broadcastTransaction, AnchorMode, uintCV, fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
+import { contractAddress, dailyCheckInContractName } from '../utils/contract';
+
+export function CheckInButton() {
+  const { isConnected, address } = useAppKit();
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [canCheckIn, setCanCheckIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const CHECK_IN_FEE = 0.01; // 0.01 STX
+
+  const checkCanCheckIn = async () => {
+    if (!isConnected || !address) {
+      setCanCheckIn(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const network = createNetwork('mainnet');
+      const result = await fetchCallReadOnlyFunction({
+        contractAddress,
+        contractName: dailyCheckInContractName,
+        functionName: 'can-check-in',
+        functionArgs: [standardPrincipalCV(address)],
+        network,
+        senderAddress: contractAddress,
+      });
+
+      const data = cvToJSON(result);
+      setCanCheckIn(data.value === true);
+    } catch (err: any) {
+      console.error('Erro ao verificar se pode fazer check-in:', err);
+      setCanCheckIn(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkCanCheckIn();
+  }, [isConnected, address]);
+
+  const handleCheckIn = async () => {
+    if (!isConnected || !address) {
+      setError('Por favor, conecte sua carteira primeiro');
+      return;
+    }
+
+    if (!canCheckIn) {
+      setError('Você já fez check-in hoje. Tente novamente amanhã!');
+      return;
+    }
+
+    setIsExecuting(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const network = createNetwork('mainnet');
+      const feeMicroStx = Math.floor(CHECK_IN_FEE * 1000000);
+
+      const transaction = await makeContractCall({
+        contractAddress,
+        contractName: dailyCheckInContractName,
+        functionName: 'check-in',
+        functionArgs: [uintCV(feeMicroStx)],
+        senderKey: address, // This will be replaced by wallet signing
+        network,
+        anchorMode: AnchorMode.Any,
+        fee: 1000,
+      });
+
+      // TODO: Integrate with AppKit's signTransaction method
+      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
+      setIsExecuting(false);
+      return;
+
+      // const signedTx = await signTransaction(transaction);
+      // const broadcastResponse = await broadcastTransaction(signedTx, network);
+
+      // if (broadcastResponse.error) {
+      //   throw new Error(broadcastResponse.error);
+      // }
+
+      // setSuccess(true);
+      // setTimeout(() => {
+      //   setSuccess(false);
+      //   checkCanCheckIn();
+      // }, 3000);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer check-in. Tente novamente.');
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  if (!isConnected) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <p className="text-center text-gray-500">Conecte sua carteira para fazer check-in</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <div className="text-center">
+        <div className="text-5xl mb-4">✅</div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Daily Check-in</h3>
+        <p className="text-gray-600 text-sm mb-4">
+          Faça check-in diariamente para manter sua sequência e ganhar pontos!
+        </p>
+        <p className="text-lg font-bold text-blue-600 mb-4">{CHECK_IN_FEE} STX</p>
+
+        {loading && (
+          <div className="text-gray-500 text-sm mb-4">Verificando...</div>
+        )}
+
+        {!loading && !canCheckIn && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p className="text-yellow-800 text-sm">Você já fez check-in hoje! Volte amanhã.</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-2 mb-2">
+            <p className="text-red-800 text-xs">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-2">
+            <p className="text-green-800 text-xs">Check-in realizado com sucesso! 🎉</p>
+          </div>
+        )}
+
+        <button
+          onClick={handleCheckIn}
+          disabled={isExecuting || !canCheckIn || loading}
+          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+        >
+          {isExecuting ? 'Processando...' : canCheckIn ? 'Fazer Check-in' : 'Já Feito Hoje'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
