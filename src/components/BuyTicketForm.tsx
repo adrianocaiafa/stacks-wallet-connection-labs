@@ -157,6 +157,7 @@ export function BuyTicketForm() {
             -
           </button>
           <input
+            id="ticket-count"
             type="number"
             min="1"
             max="100"
@@ -165,7 +166,7 @@ export function BuyTicketForm() {
               const value = parseInt(e.target.value) || 1;
               setTicketCount(Math.min(100, Math.max(1, value)));
             }}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-center"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             onClick={() => setTicketCount(Math.min(100, ticketCount + 1))}
