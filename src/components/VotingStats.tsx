@@ -6,9 +6,9 @@ import { contractAddress, votingSystemContractName } from '../utils/contract';
 export function VotingStats() {
   const [stats, setStats] = useState<{ totalPolls: number; activePollId: number | null } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchStats = async () => {
+  const fetchStats = async () => {
       setLoading(true);
       try {
         const network = createNetwork('mainnet');
@@ -48,12 +48,12 @@ export function VotingStats() {
         console.error('Erro ao buscar estatísticas:', err);
       } finally {
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
+  useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 20000); // Atualiza a cada 20 segundos
-    return () => clearInterval(interval);
   }, []);
 
   if (loading && !stats) {
@@ -68,7 +68,19 @@ export function VotingStats() {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">📊 Estatísticas</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold text-gray-900">📊 Estatísticas</h3>
+        <button
+          onClick={() => {
+            setIsRefreshing(true);
+            fetchStats();
+          }}
+          disabled={isRefreshing || loading}
+          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+        >
+          {isRefreshing ? '🔄' : '↻'} {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+        </button>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="text-center">
           <p className="text-3xl font-bold text-blue-600">{stats.totalPolls}</p>
