@@ -32,9 +32,9 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
   const [isVoting, setIsVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchPoll = async () => {
+  const fetchPoll = async () => {
       setLoading(true);
       try {
         const network = createNetwork('mainnet');
@@ -124,12 +124,12 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
         setError('Erro ao carregar poll. Tente novamente.');
       } finally {
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
 
+  useEffect(() => {
     fetchPoll();
-    const interval = setInterval(fetchPoll, 20000); // Atualiza a cada 20 segundos
-    return () => clearInterval(interval);
   }, [pollId, isConnected, address]);
 
   const handleVote = async () => {
@@ -200,10 +200,20 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
         </span>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex justify-between items-center">
         <p className="text-sm text-gray-600">
           Total de votos: <span className="font-semibold">{poll.totalVotes}</span>
         </p>
+        <button
+          onClick={() => {
+            setIsRefreshing(true);
+            fetchPoll();
+          }}
+          disabled={isRefreshing || loading}
+          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+        >
+          {isRefreshing ? '🔄' : '↻'} {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+        </button>
       </div>
 
       <div className="space-y-3 mb-4">
