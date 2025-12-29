@@ -42,7 +42,8 @@ export function BuyTicketForm() {
     };
 
     fetchUserTickets();
-    const interval = setInterval(fetchUserTickets, 10000);
+    // Aumentar intervalo para reduzir carga no servidor
+    const interval = setInterval(fetchUserTickets, 15000); // Atualiza a cada 15 segundos
     return () => clearInterval(interval);
   }, [isConnected, address]);
 

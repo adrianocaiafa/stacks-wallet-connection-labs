@@ -82,7 +82,8 @@ export function RaffleHistory() {
     };
 
     fetchHistory();
-    const interval = setInterval(fetchHistory, 15000); // Atualiza a cada 15 segundos
+    // Aumentar intervalo para reduzir carga no servidor
+    const interval = setInterval(fetchHistory, 30000); // Atualiza a cada 30 segundos
     return () => clearInterval(interval);
   }, []);
 

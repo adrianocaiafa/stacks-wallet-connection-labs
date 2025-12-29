@@ -67,7 +67,8 @@ export function RaffleStatus() {
     };
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000); // Atualiza a cada 5 segundos
+    // Aumentar intervalo para reduzir carga no servidor e evitar rate limiting
+    const interval = setInterval(fetchStatus, 10000); // Atualiza a cada 10 segundos
     return () => clearInterval(interval);
   }, []);
 
