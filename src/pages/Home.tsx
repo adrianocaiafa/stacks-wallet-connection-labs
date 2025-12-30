@@ -56,6 +56,13 @@ export function Home() {
             icon="✅"
           />
         </Link>
+        <Link to="/dice-game">
+          <Card
+            title="Dice Game"
+            description="Jogo de dados on-chain. Escolha um número de 1 a 6 e ganhe pontos se acertar!"
+            icon="🎲"
+          />
+        </Link>
       </div>
     </div>
   );
