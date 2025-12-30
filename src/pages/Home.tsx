@@ -63,6 +63,13 @@ export function Home() {
             icon="🎲"
           />
         </Link>
+        <Link to="/rock-paper-scissors">
+          <Card
+            title="Rock Paper Scissors"
+            description="Jogo clássico de Pedra, Papel e Tesoura on-chain. Escolha sua jogada e ganhe pontos!"
+            icon="🪨📄✂️"
+          />
+        </Link>
       </div>
     </div>
   );
