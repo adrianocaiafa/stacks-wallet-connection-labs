@@ -30,6 +30,9 @@ export function Header() {
           <Link to="/daily-check-in" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Check-in
           </Link>
+          <Link to="/dice-game" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Dice
+          </Link>
           <WalletConnect />
         </nav>
       </div>
