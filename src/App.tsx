@@ -6,6 +6,7 @@ import { Raffle } from './pages/Raffle';
 import { QuestSystem } from './pages/QuestSystem';
 import { VotingSystem } from './pages/VotingSystem';
 import { DailyCheckIn } from './pages/DailyCheckIn';
+import { DiceGame } from './pages/DiceGame';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="/quest-system" element={<QuestSystem />} />
           <Route path="/voting-system" element={<VotingSystem />} />
           <Route path="/daily-check-in" element={<DailyCheckIn />} />
+          <Route path="/dice-game" element={<DiceGame />} />
         </Routes>
       </Layout>
     </Router>
