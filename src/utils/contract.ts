@@ -20,3 +20,6 @@ export const votingSystemContractName = 'voting-system';
 // Daily Check-in contract
 export const dailyCheckInContractName = 'daily-check-in';
 
+// Dice Game contract
+export const diceGameContractName = 'dice-game';
+
