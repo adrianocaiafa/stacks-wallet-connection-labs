@@ -33,6 +33,9 @@ export function Header() {
           <Link to="/dice-game" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Dice
           </Link>
+          <Link to="/rock-paper-scissors" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            RPS
+          </Link>
           <WalletConnect />
         </nav>
       </div>
