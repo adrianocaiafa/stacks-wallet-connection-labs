@@ -23,3 +23,6 @@ export const dailyCheckInContractName = 'daily-check-in';
 // Dice Game contract
 export const diceGameContractName = 'dice-game';
 
+// Rock Paper Scissors contract
+export const rockPaperScissorsContractName = 'rock-paper-scissors';
+
