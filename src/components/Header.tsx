@@ -36,6 +36,9 @@ export function Header() {
           <Link to="/rock-paper-scissors" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             RPS
           </Link>
+          <Link to="/coin-flip" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Coin Flip
+          </Link>
           <WalletConnect />
         </nav>
       </div>

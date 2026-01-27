@@ -70,6 +70,13 @@ export function Home() {
             icon="🪨📄✂️"
           />
         </Link>
+        <Link to="/coin-flip">
+          <Card
+            title="Coin Flip"
+            description="Jogo de cara ou coroa on-chain. Escolha Cara ou Coroa e ganhe pontos se acertar!"
+            icon="🪙"
+          />
+        </Link>
       </div>
     </div>
   );
