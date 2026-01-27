@@ -26,3 +26,6 @@ export const diceGameContractName = 'dice-game';
 // Rock Paper Scissors contract
 export const rockPaperScissorsContractName = 'rock-paper-scissors';
 
+// Coin Flip contract
+export const coinFlipContractName = 'coin-flip';
+
