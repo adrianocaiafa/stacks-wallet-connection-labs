@@ -78,7 +78,10 @@ export function HiddenFormulaTestHistory() {
   }, [isConnected, address]);
 
   useEffect(() => {
-    const handler = () => fetchHistory();
+    const handler = () => {
+      console.log('Hidden Formula refresh event received, updating history...');
+      fetchHistory();
+    };
     window.addEventListener('hidden-formula-refresh', handler);
     return () => window.removeEventListener('hidden-formula-refresh', handler);
   }, [isConnected, address]);
@@ -94,11 +97,16 @@ export function HiddenFormulaTestHistory() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-gray-900">Histórico de Testes</h3>
+        <h3 className="text-xl font-semibold text-gray-900">
+          Histórico de Testes
+          {loading && entries.length > 0 && (
+            <span className="ml-2 text-sm text-gray-500">(atualizando...)</span>
+          )}
+        </h3>
         <button
           onClick={fetchHistory}
           disabled={loading}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50"
+          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? '⏳' : '🔄'} Atualizar
         </button>
@@ -111,17 +119,37 @@ export function HiddenFormulaTestHistory() {
         </p>
       ) : (
         <div className="space-y-3">
-          {entries.map((e, idx) => (
-            <div
-              key={e.testNum}
-              className={`flex items-center justify-between p-3 rounded-lg border ${
-                idx === entries.length - 1 ? 'bg-teal-50 border-teal-200' : 'bg-gray-50 border-gray-200'
-              }`}
-            >
-              <span className="font-medium text-gray-700">#{e.testNum}</span>
-              <span className="font-mono text-sm">f({e.input}) = {e.output}</span>
-            </div>
-          ))}
+          {entries.map((e, idx) => {
+            const isLatest = idx === entries.length - 1;
+            return (
+              <div
+                key={e.testNum}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                  isLatest
+                    ? 'bg-teal-50 border-teal-300 shadow-sm'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <span className={`font-medium ${isLatest ? 'text-teal-700' : 'text-gray-700'}`}>
+                  #{e.testNum}
+                  {isLatest && <span className="ml-2 text-xs bg-teal-200 text-teal-800 px-2 py-1 rounded-full">Último</span>}
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className={`px-3 py-1 rounded font-mono text-sm ${
+                    isLatest ? 'bg-teal-200 text-teal-900' : 'bg-gray-200 text-gray-800'
+                  }`}>
+                    x = {e.input}
+                  </div>
+                  <span className="text-gray-400">→</span>
+                  <div className={`px-3 py-1 rounded font-mono text-sm ${
+                    isLatest ? 'bg-teal-200 text-teal-900' : 'bg-gray-200 text-gray-800'
+                  }`}>
+                    f(x) = {e.output}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
