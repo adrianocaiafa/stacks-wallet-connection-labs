@@ -1,0 +1,19 @@
+export function HiddenFormula() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">🧪 Hidden Formula</h1>
+          <p className="text-gray-600 mb-2">
+            Descubra a fórmula secreta f(x) = ax² + bx + c testando entradas e deduzindo os coeficientes.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
+            <span>a: 0–3, b: 0–5, c: 0–10</span>
+            <span>12 tentativas de teste</span>
+            <span>Sem taxas, apenas gas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

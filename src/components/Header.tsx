@@ -51,6 +51,9 @@ export function Header() {
           <Link to="/multi-target" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Multi-Target
           </Link>
+          <Link to="/hidden-formula" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Hidden Formula
+          </Link>
           <StacksWalletConnect />
         </nav>
       </div>

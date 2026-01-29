@@ -41,3 +41,6 @@ export const mastermindContractName = 'mastermind-v2';
 // Multi-Target contract
 export const multiTargetContractName = 'multi-target';
 
+// Hidden Formula contract
+export const hiddenFormulaContractName = 'hidden-formula';
+

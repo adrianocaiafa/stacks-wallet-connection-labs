@@ -105,6 +105,13 @@ export function Home() {
             icon="🎯"
           />
         </Link>
+        <Link to="/hidden-formula">
+          <Card
+            title="Hidden Formula"
+            description="Descubra a fórmula secreta f(x) = ax² + bx + c testando entradas. 12 tentativas, sem taxas, apenas gas."
+            icon="🧪"
+          />
+        </Link>
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { NumberGuessZen } from './pages/NumberGuessZen';
 import { NumberGuessPro } from './pages/NumberGuessPro';
 import { Mastermind } from './pages/Mastermind';
 import { MultiTarget } from './pages/MultiTarget';
+import { HiddenFormula } from './pages/HiddenFormula';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="/number-guess-pro" element={<NumberGuessPro />} />
           <Route path="/mastermind" element={<Mastermind />} />
           <Route path="/multi-target" element={<MultiTarget />} />
+          <Route path="/hidden-formula" element={<HiddenFormula />} />
         </Routes>
       </Layout>
     </Router>
