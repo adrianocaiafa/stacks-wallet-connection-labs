@@ -39,6 +39,9 @@ export function Header() {
           <Link to="/coin-flip" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Coin Flip
           </Link>
+          <Link to="/number-guess-zen" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Number Guess
+          </Link>
           <WalletConnect />
         </nav>
       </div>

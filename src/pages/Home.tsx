@@ -77,6 +77,13 @@ export function Home() {
             icon="🪙"
           />
         </Link>
+        <Link to="/number-guess-zen">
+          <Card
+            title="Number Guess Zen"
+            description="Adivinhe um número entre 0-1000! Modo infinito de tentativas, sem custo (apenas gas). Dica opcional disponível."
+            icon="🎯"
+          />
+        </Link>
       </div>
     </div>
   );

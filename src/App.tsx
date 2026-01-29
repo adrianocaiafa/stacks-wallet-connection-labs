@@ -9,6 +9,7 @@ import { DailyCheckIn } from './pages/DailyCheckIn';
 import { DiceGame } from './pages/DiceGame';
 import { RockPaperScissors } from './pages/RockPaperScissors';
 import { CoinFlip } from './pages/CoinFlip';
+import { NumberGuessZen } from './pages/NumberGuessZen';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/dice-game" element={<DiceGame />} />
           <Route path="/rock-paper-scissors" element={<RockPaperScissors />} />
           <Route path="/coin-flip" element={<CoinFlip />} />
+          <Route path="/number-guess-zen" element={<NumberGuessZen />} />
         </Routes>
       </Layout>
     </Router>
