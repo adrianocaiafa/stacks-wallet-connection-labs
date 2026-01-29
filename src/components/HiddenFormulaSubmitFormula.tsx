@@ -141,7 +141,7 @@ export function HiddenFormulaSubmitFormula({ onSubmitSuccess }: { onSubmitSucces
     }
     setIsExecuting(true);
     setError(null);
-    setMessage(null);
+    setLastResult(null);
     try {
       const network = createNetwork('mainnet');
       await openContractCall({
