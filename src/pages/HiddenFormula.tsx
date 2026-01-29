@@ -1,3 +1,6 @@
+import { HiddenFormulaStats } from '../components/HiddenFormulaStats';
+import { UserHiddenFormulaStats } from '../components/UserHiddenFormulaStats';
+
 export function HiddenFormula() {
   return (
     <div className="container mx-auto px-4 py-8">
@@ -12,6 +15,10 @@ export function HiddenFormula() {
             <span>12 tentativas de teste</span>
             <span>Sem taxas, apenas gas</span>
           </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <HiddenFormulaStats />
+          <UserHiddenFormulaStats />
         </div>
       </div>
     </div>
