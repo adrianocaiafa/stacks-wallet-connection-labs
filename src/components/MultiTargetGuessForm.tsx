@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { listCV, uintCV } from '@stacks/transactions';
@@ -8,11 +8,147 @@ import { openContractCall } from '@stacks/connect';
 const MIN = 0;
 const MAX = 100;
 
+interface GuessResult {
+  exactMatches: number;
+  attemptsUsed: number;
+  gameWon: boolean;
+  message?: string;
+  targets?: number[];
+}
+
 export function MultiTargetGuessForm({ onGuessSuccess }: { onGuessSuccess?: () => void }) {
   const { isConnected, address } = useStacksWallet();
   const [numbers, setNumbers] = useState<[number, number, number]>([0, 0, 0]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingTxId, setPendingTxId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timer | null>(null);
+  const [lastResult, setLastResult] = useState<GuessResult | null>(null);
+
+  const POLLING_INTERVAL = 10000; // 10 segundos
+
+  // Função para parsear o resultado da transação
+  const parseGuessResult = (txResult: string): GuessResult | null => {
+    try {
+      // Extrai os dados usando regex
+      const exactMatch = txResult.match(/\(exact-matches u(\d+)\)/);
+      const attemptsMatch = txResult.match(/\(attempts-used u(\d+)\)/);
+      const gameWonMatch = txResult.match(/\(game-won (true|false)\)/);
+      const messageMatch = txResult.match(/\(message "([^"]+)"\)/);
+      
+      // Extrai os targets se o jogo foi ganho
+      const targetsMatch = txResult.match(/\(targets \(list u(\d+) u(\d+) u(\d+)\)\)/);
+
+      const result: GuessResult = {
+        exactMatches: exactMatch ? parseInt(exactMatch[1]) : 0,
+        attemptsUsed: attemptsMatch ? parseInt(attemptsMatch[1]) : 0,
+        gameWon: gameWonMatch ? gameWonMatch[1] === 'true' : false,
+        message: messageMatch?.[1],
+      };
+
+      if (targetsMatch) {
+        result.targets = [
+          parseInt(targetsMatch[1]),
+          parseInt(targetsMatch[2]),
+          parseInt(targetsMatch[3]),
+        ];
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Erro ao parsear resultado:', error);
+      return null;
+    }
+  };
+
+  // Função para verificar o status da transação
+  const checkTransactionStatus = async (txId: string): Promise<GuessResult | null> => {
+    try {
+      const response = await fetch(
+        `https://api.mainnet.hiro.so/extended/v1/tx/${txId}`
+      );
+      const txData = await response.json();
+
+      // Verifica se ainda está pendente
+      if (txData.tx_status === 'pending') {
+        return null; // Continua o polling
+      }
+
+      // Verifica se teve sucesso
+      if (txData.tx_status === 'success') {
+        const result = parseGuessResult(txData.tx_result.repr);
+        return result;
+      }
+
+      // Se falhou
+      if (txData.tx_status === 'abort_by_response' || txData.tx_status === 'abort_by_post_condition') {
+        throw new Error('Transação falhou: ' + (txData.tx_result?.repr || 'Erro desconhecido'));
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Erro ao verificar transação:', error);
+      throw error;
+    }
+  };
+
+  // Função para parar o polling
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+      setPendingTxId(null);
+    }
+  };
+
+  // Função para iniciar o polling
+  const startPolling = (txId: string) => {
+    // Para qualquer polling anterior
+    stopPolling();
+
+    setPendingTxId(txId);
+
+    // Inicia o polling a cada 10 segundos
+    const interval = setInterval(async () => {
+      try {
+        const result = await checkTransactionStatus(txId);
+
+        if (result) {
+          // Encontrou o resultado! Para o polling usando a referência local
+          clearInterval(interval);
+          setPollingInterval(null);
+          setPendingTxId(null);
+
+          // Atualiza a UI com o resultado
+          setLastResult(result);
+
+          // Chama callback de sucesso após um pequeno delay
+          if (onGuessSuccess) {
+            setTimeout(() => {
+              onGuessSuccess();
+            }, 1000);
+          }
+
+          setError(null);
+        }
+      } catch (error) {
+        // Para o polling usando a referência local
+        clearInterval(interval);
+        setPollingInterval(null);
+        setPendingTxId(null);
+        setError('Erro ao verificar resultado da transação');
+      }
+    }, POLLING_INTERVAL);
+
+    setPollingInterval(interval);
+  };
+
+  // Limpa o polling ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
 
   const setNum = (index: 0 | 1 | 2, value: number) => {
     const v = Math.max(MIN, Math.min(MAX, value));
@@ -46,10 +182,17 @@ export function MultiTargetGuessForm({ onGuessSuccess }: { onGuessSuccess?: () =
           name: 'Stacks Portal',
           icon: window.location.origin + '/vite.svg',
         },
-        onFinish: () => {
-          if (onGuessSuccess) onGuessSuccess();
+        onFinish: (data) => {
+          console.log('Transaction submitted:', data.txId);
+          setError('Palpite enviado! Verificando resultado...');
+          setLastResult(null);
+
+          // Inicia o polling para verificar o resultado
+          startPolling(data.txId);
+          setIsExecuting(false);
         },
         onCancel: () => {
+          setError('Transação cancelada pelo usuário.');
           setIsExecuting(false);
         },
       });
@@ -75,9 +218,80 @@ export function MultiTargetGuessForm({ onGuessSuccess }: { onGuessSuccess?: () =
         Digite 3 números (0–100). O contrato informa quantos estão exatos (valor + posição).
       </p>
 
-      {error && (
+      {error && !pendingTxId && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+
+      {pendingTxId && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-800 mb-1">
+                ⏳ Aguardando confirmação na blockchain...
+              </p>
+              <p className="text-xs text-blue-600">
+                Verificando resultado a cada 10 segundos
+              </p>
+              <a
+                href={`https://explorer.hiro.so/txid/${pendingTxId}?chain=mainnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:text-blue-700 underline mt-1 inline-block"
+              >
+                Ver transação no explorer →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lastResult && (
+        <div className={`mb-4 p-4 rounded-lg border ${
+          lastResult.gameWon
+            ? 'bg-green-50 border-green-200'
+            : lastResult.exactMatches === 0
+            ? 'bg-red-50 border-red-200'
+            : 'bg-amber-50 border-amber-200'
+        }`}>
+          <div className="text-center">
+            <p className={`text-lg font-bold mb-2 ${
+              lastResult.gameWon
+                ? 'text-green-800'
+                : lastResult.exactMatches === 0
+                ? 'text-red-800'
+                : 'text-amber-800'
+            }`}>
+              {lastResult.gameWon && '🎉 Parabéns! Você acertou todos os alvos!'}
+              {!lastResult.gameWon && lastResult.exactMatches === 0 && '❌ Nenhum acerto exato'}
+              {!lastResult.gameWon && lastResult.exactMatches > 0 && `🎯 ${lastResult.exactMatches} acerto(s) exato(s)!`}
+            </p>
+            <div className="text-sm mb-2">
+              <span className="font-semibold text-green-700">Acertos exatos:</span>{' '}
+              <span className="font-bold text-2xl">{lastResult.exactMatches}</span>
+              <span className="text-gray-600"> / 3</span>
+            </div>
+            {lastResult.message && (
+              <p className="text-xs mt-2 text-gray-600">{lastResult.message}</p>
+            )}
+            {lastResult.targets && (
+              <div className="mt-3 pt-3 border-t border-gray-300">
+                <p className="text-sm font-semibold mb-2">Números alvos:</p>
+                <div className="flex justify-center gap-2">
+                  {lastResult.targets.map((target, i) => (
+                    <div
+                      key={i}
+                      className="w-16 h-16 flex items-center justify-center bg-indigo-600 text-white rounded-lg font-bold text-xl"
+                    >
+                      {target}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -91,7 +305,8 @@ export function MultiTargetGuessForm({ onGuessSuccess }: { onGuessSuccess?: () =
               max={MAX}
               value={numbers[i]}
               onChange={(e) => setNum(i, parseInt(e.target.value, 10) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              disabled={isExecuting || pendingTxId !== null}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         ))}
@@ -103,10 +318,10 @@ export function MultiTargetGuessForm({ onGuessSuccess }: { onGuessSuccess?: () =
 
       <button
         onClick={handleGuess}
-        disabled={isExecuting}
+        disabled={isExecuting || pendingTxId !== null}
         className="w-full px-4 py-3 bg-gradient-to-r from-indigo-500 to-amber-500 text-white rounded-lg hover:from-indigo-600 hover:to-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
       >
-        {isExecuting ? 'Enviando...' : 'Enviar palpite'}
+        {isExecuting ? 'Enviando...' : pendingTxId ? 'Aguardando...' : 'Enviar palpite'}
       </button>
     </div>
   );

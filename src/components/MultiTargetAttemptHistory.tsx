@@ -105,7 +105,10 @@ export function MultiTargetAttemptHistory() {
   }, [isConnected, address]);
 
   useEffect(() => {
-    const handler = () => fetchHistory();
+    const handler = () => {
+      console.log('Multi-Target refresh event received, updating history...');
+      fetchHistory();
+    };
     window.addEventListener('multi-target-refresh', handler);
     return () => window.removeEventListener('multi-target-refresh', handler);
   }, [isConnected, address]);
@@ -121,12 +124,18 @@ export function MultiTargetAttemptHistory() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-gray-900">Tentativas do jogo atual</h3>
+        <h3 className="text-xl font-semibold text-gray-900">
+          Tentativas do jogo atual
+          {loading && attempts.length > 0 && (
+            <span className="ml-2 text-sm text-gray-500">(atualizando...)</span>
+          )}
+        </h3>
         <button
           onClick={fetchHistory}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+          disabled={loading}
+          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          🔄 Atualizar
+          {loading ? '⏳' : '🔄'} Atualizar
         </button>
       </div>
 
@@ -137,17 +146,52 @@ export function MultiTargetAttemptHistory() {
           {attemptsUsed === 0 ? 'Nenhuma tentativa ainda. Faça um palpite.' : 'Nenhuma tentativa carregada.'}
         </p>
       ) : (
-        <ul className="space-y-2">
-          {attempts.map((a) => (
-            <li key={a.attemptNum} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-              <span className="text-gray-600">#{a.attemptNum}</span>
-              <span className="font-mono text-sm">
-                [{a.guess[0]}, {a.guess[1]}, {a.guess[2]}] → soma {a.guess[0] + a.guess[1] + a.guess[2]}
-              </span>
-              <span className="text-indigo-600 font-semibold">{a.exactMatches} exatos</span>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-3">
+          {attempts.map((a, index) => {
+            const isLatest = index === attempts.length - 1;
+            const sum = a.guess[0] + a.guess[1] + a.guess[2];
+            return (
+              <div
+                key={a.attemptNum}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                  isLatest
+                    ? 'bg-indigo-50 border-indigo-300 shadow-sm'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <span className={`font-medium ${isLatest ? 'text-indigo-700' : 'text-gray-700'}`}>
+                  #{a.attemptNum}
+                  {isLatest && <span className="ml-2 text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full">Última</span>}
+                </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    {a.guess.map((num, i) => (
+                      <div
+                        key={i}
+                        className={`w-12 h-10 flex items-center justify-center rounded font-mono font-bold ${
+                          isLatest ? 'bg-indigo-200 text-indigo-900' : 'bg-gray-200 text-gray-800'
+                        }`}
+                      >
+                        {num}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500 ml-2">
+                    Σ = {sum}
+                  </span>
+                </div>
+                <span className={`font-semibold ${
+                  a.exactMatches === 3 ? 'text-green-600' :
+                  a.exactMatches > 0 ? 'text-amber-600' :
+                  'text-red-600'
+                }`}>
+                  {a.exactMatches === 3 && '🎉 '}
+                  {a.exactMatches} exato{a.exactMatches !== 1 ? 's' : ''}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
