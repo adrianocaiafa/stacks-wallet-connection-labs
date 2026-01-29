@@ -32,3 +32,6 @@ export const coinFlipContractName = 'coin-flip';
 // Number Guess Zen contract
 export const numberGuessZenContractName = 'number-guess-zen';
 
+// Number Guess Pro contract
+export const numberGuessProContractName = 'number-guess-pro';
+
