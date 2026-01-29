@@ -108,6 +108,12 @@ export function MastermindAttemptHistory() {
     fetchHistory();
   }, [isConnected, address]);
 
+  useEffect(() => {
+    const handler = () => fetchHistory();
+    window.addEventListener('mastermind-refresh', handler);
+    return () => window.removeEventListener('mastermind-refresh', handler);
+  }, [isConnected, address]);
+
   if (!isConnected) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">

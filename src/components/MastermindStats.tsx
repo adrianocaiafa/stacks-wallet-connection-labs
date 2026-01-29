@@ -72,6 +72,12 @@ export function MastermindStats() {
     fetchStats();
   }, []);
 
+  useEffect(() => {
+    const handler = () => fetchStats();
+    window.addEventListener('mastermind-refresh', handler);
+    return () => window.removeEventListener('mastermind-refresh', handler);
+  }, []);
+
   if (loading && !info) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
