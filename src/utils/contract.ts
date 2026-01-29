@@ -38,3 +38,6 @@ export const numberGuessProContractName = 'number-guess-pro';
 // Mastermind contract
 export const mastermindContractName = 'mastermind-v2';
 
+// Multi-Target contract
+export const multiTargetContractName = 'multi-target';
+
