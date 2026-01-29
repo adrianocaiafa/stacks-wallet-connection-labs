@@ -91,6 +91,13 @@ export function Home() {
             icon="🎯"
           />
         </Link>
+        <Link to="/mastermind">
+          <Card
+            title="Mastermind"
+            description="Jogo de quebra-código on-chain. Adivinhe o código de 5 dígitos (0-9) em até 10 tentativas. Exatas e parciais."
+            icon="🔢"
+          />
+        </Link>
       </div>
     </div>
   );

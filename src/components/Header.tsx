@@ -45,6 +45,9 @@ export function Header() {
           <Link to="/number-guess-pro" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Number Pro
           </Link>
+          <Link to="/mastermind" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Mastermind
+          </Link>
           <StacksWalletConnect />
         </nav>
       </div>

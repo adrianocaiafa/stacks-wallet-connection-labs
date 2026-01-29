@@ -11,6 +11,7 @@ import { RockPaperScissors } from './pages/RockPaperScissors';
 import { CoinFlip } from './pages/CoinFlip';
 import { NumberGuessZen } from './pages/NumberGuessZen';
 import { NumberGuessPro } from './pages/NumberGuessPro';
+import { Mastermind } from './pages/Mastermind';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -31,6 +32,7 @@ function App() {
           <Route path="/coin-flip" element={<CoinFlip />} />
           <Route path="/number-guess-zen" element={<NumberGuessZen />} />
           <Route path="/number-guess-pro" element={<NumberGuessPro />} />
+          <Route path="/mastermind" element={<Mastermind />} />
         </Routes>
       </Layout>
     </Router>
