@@ -1,7 +1,15 @@
 import { HiddenFormulaStats } from '../components/HiddenFormulaStats';
 import { UserHiddenFormulaStats } from '../components/UserHiddenFormulaStats';
+import { HiddenFormulaStartGame } from '../components/HiddenFormulaStartGame';
+import { HiddenFormulaTestInput } from '../components/HiddenFormulaTestInput';
+import { HiddenFormulaSubmitFormula } from '../components/HiddenFormulaSubmitFormula';
+import { HiddenFormulaGiveUp } from '../components/HiddenFormulaGiveUp';
 
 export function HiddenFormula() {
+  const refresh = () => {
+    window.dispatchEvent(new CustomEvent('hidden-formula-refresh'));
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -19,6 +27,14 @@ export function HiddenFormula() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <HiddenFormulaStats />
           <UserHiddenFormulaStats />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <HiddenFormulaStartGame onStartSuccess={refresh} />
+          <HiddenFormulaTestInput onTestSuccess={refresh} />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <HiddenFormulaSubmitFormula onSubmitSuccess={refresh} />
+          <HiddenFormulaGiveUp onGiveUpSuccess={refresh} />
         </div>
       </div>
     </div>
