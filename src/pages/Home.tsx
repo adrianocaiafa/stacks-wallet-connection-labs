@@ -98,6 +98,13 @@ export function Home() {
             icon="🔢"
           />
         </Link>
+        <Link to="/multi-target">
+          <Card
+            title="Multi-Target"
+            description="Adivinhe 3 números (0–100) que somam um total conhecido. 15 tentativas; exatos por valor e posição. Sem custo, apenas gas."
+            icon="🎯"
+          />
+        </Link>
       </div>
     </div>
   );

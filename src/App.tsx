@@ -12,6 +12,7 @@ import { CoinFlip } from './pages/CoinFlip';
 import { NumberGuessZen } from './pages/NumberGuessZen';
 import { NumberGuessPro } from './pages/NumberGuessPro';
 import { Mastermind } from './pages/Mastermind';
+import { MultiTarget } from './pages/MultiTarget';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/number-guess-zen" element={<NumberGuessZen />} />
           <Route path="/number-guess-pro" element={<NumberGuessPro />} />
           <Route path="/mastermind" element={<Mastermind />} />
+          <Route path="/multi-target" element={<MultiTarget />} />
         </Routes>
       </Layout>
     </Router>

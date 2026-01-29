@@ -48,6 +48,9 @@ export function Header() {
           <Link to="/mastermind" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Mastermind
           </Link>
+          <Link to="/multi-target" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Multi-Target
+          </Link>
           <StacksWalletConnect />
         </nav>
       </div>
