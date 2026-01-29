@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, numberGuessProContractName } from '../utils/contract';
@@ -13,7 +13,7 @@ interface UserStats {
 }
 
 export function UserNumberGuessProStats() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [winRate, setWinRate] = useState<number>(0);
   const [avgScore, setAvgScore] = useState<number>(0);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { standardPrincipalCV } from '@stacks/transactions';
@@ -16,7 +16,7 @@ interface UserStats {
 }
 
 export function UserCoinFlipStats() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [winRate, setWinRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, AnchorMode } from '@stacks/transactions';
 import { contractAddress, questSystemContractName } from '../utils/contract';
@@ -15,7 +15,7 @@ interface QuestCardProps {
 }
 
 export function QuestCard({ questType, title, description, fee, points, icon }: QuestCardProps) {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [canComplete, setCanComplete] = useState(true);
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);

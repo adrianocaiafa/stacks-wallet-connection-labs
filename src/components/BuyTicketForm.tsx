@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, AnchorMode, uintCV } from '@stacks/transactions';
 import { contractAddress, raffleContractName } from '../utils/contract';
 
 export function BuyTicketForm() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [ticketCount, setTicketCount] = useState(1);
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);

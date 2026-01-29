@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON, uintCV, standardPrincipalCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, votingSystemContractName } from '../utils/contract';
@@ -25,7 +25,7 @@ interface PollCardProps {
 }
 
 export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [poll, setPoll] = useState<PollData | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);

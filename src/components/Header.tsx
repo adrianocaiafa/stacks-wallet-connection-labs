@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { WalletConnect } from './WalletConnect';
+import { StacksWalletConnect } from './StacksWalletConnect';
 
 export function Header() {
   return (
@@ -45,7 +45,7 @@ export function Header() {
           <Link to="/number-guess-pro" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Number Pro
           </Link>
-          <WalletConnect />
+          <StacksWalletConnect />
         </nav>
       </div>
     </header>

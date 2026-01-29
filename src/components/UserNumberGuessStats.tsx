@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction } from '@stacks/transactions';
 import { cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
@@ -7,7 +7,7 @@ import { standardPrincipalCV } from '@stacks/transactions';
 import { contractAddress, numberGuessZenContractName } from '../utils/contract';
 
 export function UserNumberGuessStats() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [stats, setStats] = useState<{
     totalGames: number;
     totalAttempts: number;

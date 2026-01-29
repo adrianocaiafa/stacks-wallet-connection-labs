@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV, uintCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, numberGuessProContractName } from '../utils/contract';
@@ -13,7 +13,7 @@ interface GameHistoryItem {
 }
 
 export function NumberGuessProHistory() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [history, setHistory] = useState<GameHistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [gameCount, setGameCount] = useState<number>(0);

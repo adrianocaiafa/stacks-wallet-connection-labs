@@ -16,7 +16,8 @@ const wagmiAdapter = new WagmiAdapter({
 export const wagmiConfig = wagmiAdapter.wagmiConfig
 
 // Create AppKit instance
-// This will automatically detect injected providers (like Leather) and WalletConnect
+// Note: This is kept for potential future Ethereum integration
+// Currently using @stacks/connect for Stacks/Bitcoin wallet connections
 export const appKit = createAppKit({
   adapters: [wagmiAdapter],
   networks: [mainnet],

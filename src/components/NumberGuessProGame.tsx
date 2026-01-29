@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, fetchCallReadOnlyFunction, cvToJSON, AnchorMode, uintCV, standardPrincipalCV } from '@stacks/transactions';
 import { contractAddress, numberGuessProContractName } from '../utils/contract';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 
 interface ActiveGame {
   secretNumber: number;
@@ -22,7 +22,7 @@ interface GameResult {
 }
 
 export function NumberGuessProGame() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [activeGame, setActiveGame] = useState<ActiveGame | null>(null);
   const [guessValue, setGuessValue] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState(false);

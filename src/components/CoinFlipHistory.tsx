@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { standardPrincipalCV, uintCV } from '@stacks/transactions';
@@ -14,7 +14,7 @@ interface FlipHistoryEntry {
 }
 
 export function CoinFlipHistory() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [history, setHistory] = useState<FlipHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [flipCount, setFlipCount] = useState<number>(0);

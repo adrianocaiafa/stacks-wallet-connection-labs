@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction } from '@stacks/transactions';
 import { cvToJSON } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
@@ -15,7 +15,7 @@ interface GameHistoryItem {
 }
 
 export function NumberGuessHistory() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [history, setHistory] = useState<GameHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [gameCount, setGameCount] = useState<number>(0);

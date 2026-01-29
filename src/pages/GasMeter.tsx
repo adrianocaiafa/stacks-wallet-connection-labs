@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { ActionButton } from '../components/ActionButton';
 import { UserStats } from '../components/UserStats';
 import { Leaderboard } from '../components/Leaderboard';
 import { ActionStats } from '../components/ActionStats';
 
 export function GasMeter() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
 
   return (

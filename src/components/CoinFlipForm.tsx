@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode, uintCV } from '@stacks/transactions';
 import { contractAddress, coinFlipContractName } from '../utils/contract';
 
 export function CoinFlipForm() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [selectedChoice, setSelectedChoice] = useState<'heads' | 'tails' | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV, uintCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, dailyCheckInContractName } from '../utils/contract';
@@ -12,7 +12,7 @@ interface CheckInHistoryEntry {
 }
 
 export function CheckInHistory() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [history, setHistory] = useState<CheckInHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCheckIns, setTotalCheckIns] = useState(0);

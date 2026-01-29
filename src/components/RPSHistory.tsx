@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV, uintCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, rockPaperScissorsContractName } from '../utils/contract';
@@ -26,7 +26,7 @@ const RESULT_LABELS: { [key: string]: { text: string; color: string } } = {
 };
 
 export function RPSHistory() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [history, setHistory] = useState<GameHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalGames, setTotalGames] = useState(0);

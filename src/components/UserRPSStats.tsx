@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
 import { createNetwork } from '@stacks/network';
 import { contractAddress, rockPaperScissorsContractName } from '../utils/contract';
@@ -15,7 +15,7 @@ interface UserStats {
 }
 
 export function UserRPSStats() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(false);
 

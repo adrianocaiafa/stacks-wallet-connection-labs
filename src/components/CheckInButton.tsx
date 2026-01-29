@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode, uintCV, fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
 import { contractAddress, dailyCheckInContractName } from '../utils/contract';
 
 export function CheckInButton() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

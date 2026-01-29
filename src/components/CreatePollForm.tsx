@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 
 export function CreatePollForm({ onPollCreated }: { onPollCreated?: () => void }) {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [title, setTitle] = useState('');
   const [options, setOptions] = useState<string[]>(['', '']);
   const [isCreating, setIsCreating] = useState(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode, uintCV, fetchCallReadOnlyFunction, cvToJSON, standardPrincipalCV } from '@stacks/transactions';
 import { contractAddress, dailyCheckInContractName } from '../utils/contract';
@@ -11,7 +11,7 @@ const MILESTONES = [
 ];
 
 export function MilestoneClaims() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [claimedMilestones, setClaimedMilestones] = useState<Set<number>>(new Set());
   const [userStreak, setUserStreak] = useState(0);
   const [loading, setLoading] = useState(false);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAppKit } from '@reown/appkit/react';
+import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import { makeContractCall, broadcastTransaction, AnchorMode, uintCV } from '@stacks/transactions';
 import { contractAddress, rockPaperScissorsContractName } from '../utils/contract';
@@ -17,7 +17,7 @@ const CONTRACT_CHOICES: { [key: number]: string } = {
 };
 
 export function RPSGameForm() {
-  const { isConnected, address } = useAppKit();
+  const { isConnected, address } = useStacksWallet();
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
