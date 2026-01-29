@@ -29,3 +29,6 @@ export const rockPaperScissorsContractName = 'rock-paper-scissors';
 // Coin Flip contract
 export const coinFlipContractName = 'coin-flip';
 
+// Number Guess Zen contract
+export const numberGuessZenContractName = 'number-guess-zen';
+
