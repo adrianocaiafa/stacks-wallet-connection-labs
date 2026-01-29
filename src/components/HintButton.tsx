@@ -1,0 +1,118 @@
+import { useState } from 'react';
+import { useAppKit } from '@reown/appkit/react';
+import { createNetwork } from '@stacks/network';
+import { makeContractCall, broadcastTransaction, AnchorMode, uintCV } from '@stacks/transactions';
+import { contractAddress, numberGuessZenContractName } from '../utils/contract';
+
+const HINT_FEE = 0.003; // 0.003 STX
+
+export function HintButton({ onHintSuccess }: { onHintSuccess?: () => void }) {
+  const { isConnected, address } = useAppKit();
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hint, setHint] = useState<{
+    parity: string;
+    rangeStart: number;
+    rangeEnd: number;
+    message: string;
+  } | null>(null);
+
+  const handleGetHint = async () => {
+    if (!isConnected || !address) {
+      setError('Por favor, conecte sua carteira primeiro');
+      return;
+    }
+
+    setIsExecuting(true);
+    setError(null);
+    setHint(null);
+
+    try {
+      const network = createNetwork('mainnet');
+      const feeMicroStx = Math.floor(HINT_FEE * 1000000);
+
+      const transaction = await makeContractCall({
+        contractAddress,
+        contractName: numberGuessZenContractName,
+        functionName: 'get-hint',
+        functionArgs: [uintCV(feeMicroStx)],
+        senderKey: address, // This will be replaced by wallet signing
+        network,
+        anchorMode: AnchorMode.Any,
+        fee: 1000,
+      });
+
+      // TODO: Integrate with AppKit's signTransaction method
+      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
+      setIsExecuting(false);
+      return;
+
+      // const signedTx = await signTransaction(transaction);
+      // const broadcastResponse = await broadcastTransaction(signedTx, network);
+
+      // if (broadcastResponse.error) {
+      //   throw new Error(broadcastResponse.error);
+      // }
+
+      // // Parse result
+      // const result = broadcastResponse.result;
+      // setHint({
+      //   parity: result.parity,
+      //   rangeStart: result['range-start'],
+      //   rangeEnd: result['range-end'],
+      //   message: result.message,
+      // });
+
+      // if (onHintSuccess) {
+      //   setTimeout(() => {
+      //     onHintSuccess();
+      //   }, 1000);
+      // }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao obter dica. Tente novamente.');
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  if (!isConnected) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">💡 Obter Dica</h3>
+        <p className="text-gray-600 text-sm mb-4">
+          Revele a paridade (par/ímpar) e o intervalo do século (0-99, 100-199, etc.)
+        </p>
+        <p className="text-lg font-bold text-purple-600 mb-4">{HINT_FEE} STX</p>
+        <p className="text-xs text-gray-500 mb-4">Apenas uma dica por jogo</p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <p className="text-red-800 text-sm">{error}</p>
+        </div>
+      )}
+
+      {hint && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <p className="font-semibold text-purple-800 mb-2">💡 Dica Revelada!</p>
+          <div className="text-sm space-y-1 text-purple-700">
+            <p>Paridade: <span className="font-bold">{hint.parity === 'even' ? 'Par' : 'Ímpar'}</span></p>
+            <p>Intervalo: <span className="font-bold">{hint.rangeStart} - {hint.rangeEnd}</span></p>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={handleGetHint}
+        disabled={isExecuting}
+        className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+      >
+        {isExecuting ? 'Processando...' : 'Obter Dica 💡'}
+      </button>
+    </div>
+  );
+}
