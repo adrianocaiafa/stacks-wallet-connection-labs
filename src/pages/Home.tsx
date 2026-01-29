@@ -84,6 +84,13 @@ export function Home() {
             icon="🎯"
           />
         </Link>
+        <Link to="/number-guess-pro">
+          <Card
+            title="Number Guess Pro"
+            description="Modo desafio - exatamente 10 tentativas. Adivinhe um número entre 0-1000! Sem taxas para palpites, dica opcional disponível."
+            icon="🎯"
+          />
+        </Link>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { DiceGame } from './pages/DiceGame';
 import { RockPaperScissors } from './pages/RockPaperScissors';
 import { CoinFlip } from './pages/CoinFlip';
 import { NumberGuessZen } from './pages/NumberGuessZen';
+import { NumberGuessPro } from './pages/NumberGuessPro';
 import { Layout } from './components/Layout';
 import './App.css';
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="/rock-paper-scissors" element={<RockPaperScissors />} />
           <Route path="/coin-flip" element={<CoinFlip />} />
           <Route path="/number-guess-zen" element={<NumberGuessZen />} />
+          <Route path="/number-guess-pro" element={<NumberGuessPro />} />
         </Routes>
       </Layout>
     </Router>

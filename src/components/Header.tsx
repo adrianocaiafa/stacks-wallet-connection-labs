@@ -42,6 +42,9 @@ export function Header() {
           <Link to="/number-guess-zen" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
             Number Guess
           </Link>
+          <Link to="/number-guess-pro" className="text-sm sm:text-base text-gray-600 hover:text-gray-900 px-2 py-1">
+            Number Pro
+          </Link>
           <WalletConnect />
         </nav>
       </div>
