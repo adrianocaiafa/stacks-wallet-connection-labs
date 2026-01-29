@@ -95,7 +95,7 @@ export function PollCard({ pollId, onVoteSuccess }: PollCardProps) {
           const options: PollOption[] = [];
           for (let i = 0; i < optionCount; i++) {
             const optionText = optionsList[i]?.value || optionsList[i] || '';
-            const votesData = cvToJSON(optionVotesResults[i]);
+            const votesData = cvToJSON(optionVotesResults[i] as any);
             const votes = parseInt(String(votesData.value || '0'));
             options.push({
               text: String(optionText),

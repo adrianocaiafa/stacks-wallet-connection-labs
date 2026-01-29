@@ -54,8 +54,8 @@ export function TipHistory({ recipientAddress }: TipHistoryProps) {
         const fetchedTips: Tip[] = [];
 
         for (let i = 0; i < tipsToFetch; i++) {
+          const tipId = totalTips - 1 - i; // Start from most recent
           try {
-            const tipId = totalTips - 1 - i; // Start from most recent
             const tipResult = await fetchCallReadOnlyFunction({
               contractAddress,
               contractName,

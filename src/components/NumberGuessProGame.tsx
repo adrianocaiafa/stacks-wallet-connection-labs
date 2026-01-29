@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createNetwork } from '@stacks/network';
-import { makeContractCall, fetchCallReadOnlyFunction, cvToJSON, AnchorMode, uintCV, standardPrincipalCV } from '@stacks/transactions';
+import { fetchCallReadOnlyFunction, cvToJSON, uintCV, standardPrincipalCV } from '@stacks/transactions';
+import { openContractCall } from '@stacks/connect';
 import { contractAddress, numberGuessProContractName } from '../utils/contract';
 import { useStacksWallet } from '../hooks/useStacksWallet';
 
@@ -31,10 +32,125 @@ export function NumberGuessProGame() {
   const [hintInfo, setHintInfo] = useState<{ parity: string; rangeStart: number; rangeEnd: number } | null>(null);
   const [canUseHint, setCanUseHint] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pendingTxId, setPendingTxId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timer | null>(null);
 
   const HINT_FEE = 0.003; // 0.003 STX
   const MIN_NUMBER = 0;
   const MAX_NUMBER = 1000;
+  const POLLING_INTERVAL = 5000; // 5 segundos
+
+  // Função para parsear o resultado da transação
+  const parseGuessResult = (txResult: string): GameResult | null => {
+    try {
+      // Extrai os dados usando regex
+      const resultMatch = txResult.match(/\(result "([^"]+)"\)/);
+      const messageMatch = txResult.match(/\(message "([^"]+)"\)/);
+      const attemptsMatch = txResult.match(/\(attempts-used u(\d+)\)/);
+      const hintMatch = txResult.match(/\(hint-used (true|false)\)/);
+      const numberMatch = txResult.match(/\(number u(\d+)\)/);
+      const scoreMatch = txResult.match(/\(score u(\d+)\)/);
+
+      if (!resultMatch) return null;
+
+      return {
+        result: resultMatch[1],
+        message: messageMatch?.[1] || '',
+        attemptsUsed: parseInt(attemptsMatch?.[1] || '0'),
+        hintUsed: hintMatch?.[1] === 'true',
+        number: numberMatch ? parseInt(numberMatch[1]) : null,
+        score: parseInt(scoreMatch?.[1] || '0'),
+      };
+    } catch (error) {
+      console.error('Erro ao parsear resultado:', error);
+      return null;
+    }
+  };
+
+  // Função para verificar o status da transação
+  const checkTransactionStatus = async (txId: string): Promise<GameResult | null> => {
+    try {
+      const response = await fetch(
+        `https://api.mainnet.hiro.so/extended/v1/tx/${txId}`
+      );
+      const txData = await response.json();
+
+      // Verifica se ainda está pendente
+      if (txData.tx_status === 'pending') {
+        return null; // Continua o polling
+      }
+
+      // Verifica se teve sucesso
+      if (txData.tx_status === 'success') {
+        const result = parseGuessResult(txData.tx_result.repr);
+        return result;
+      }
+
+      // Se falhou
+      if (txData.tx_status === 'abort_by_response' || txData.tx_status === 'abort_by_post_condition') {
+        throw new Error('Transação falhou: ' + (txData.tx_result?.repr || 'Erro desconhecido'));
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Erro ao verificar transação:', error);
+      throw error;
+    }
+  };
+
+  // Função para parar o polling
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+      setPendingTxId(null);
+    }
+  };
+
+  // Função para iniciar o polling
+  const startPolling = (txId: string) => {
+    // Para qualquer polling anterior
+    stopPolling();
+
+    setPendingTxId(txId);
+
+    // Inicia o polling a cada 5 segundos
+    const interval = setInterval(async () => {
+      try {
+        const result = await checkTransactionStatus(txId);
+
+        if (result) {
+          // Encontrou o resultado! Para o polling usando a referência local
+          clearInterval(interval);
+          setPollingInterval(null);
+          setPendingTxId(null);
+
+          // Atualiza a UI com o resultado
+          setGameResult(result);
+
+          // Atualiza o estado do jogo
+          await fetchActiveGame();
+
+          setError(null);
+        }
+      } catch (error) {
+        // Para o polling usando a referência local
+        clearInterval(interval);
+        setPollingInterval(null);
+        setPendingTxId(null);
+        setError('Erro ao verificar resultado da transação');
+      }
+    }, POLLING_INTERVAL);
+
+    setPollingInterval(interval);
+  };
+
+  // Limpa o polling ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
 
   const fetchActiveGame = async () => {
     if (!isConnected || !address) {
@@ -111,20 +227,27 @@ export function NumberGuessProGame() {
     try {
       const network = createNetwork('mainnet');
 
-      const transaction = await makeContractCall({
+      await openContractCall({
         contractAddress,
         contractName: numberGuessProContractName,
         functionName: 'start-game',
         functionArgs: [],
-        senderKey: address,
         network,
-        anchorMode: AnchorMode.Any,
-        fee: 1000,
+        appDetails: {
+          name: 'Stacks Portal',
+          icon: window.location.origin + '/vite.svg',
+        },
+        onFinish: (data) => {
+          console.log('Transaction submitted:', data.txId);
+          setError('Transação enviada! Aguarde a confirmação na blockchain.');
+          setTimeout(() => {
+            fetchActiveGame();
+          }, 3000);
+        },
+        onCancel: () => {
+          setError('Transação cancelada pelo usuário.');
+        },
       });
-
-      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
-      setIsExecuting(false);
-      return;
     } catch (err: any) {
       setError(err.message || 'Erro ao iniciar jogo. Tente novamente.');
     } finally {
@@ -151,20 +274,29 @@ export function NumberGuessProGame() {
     try {
       const network = createNetwork('mainnet');
 
-      const transaction = await makeContractCall({
+      await openContractCall({
         contractAddress,
         contractName: numberGuessProContractName,
         functionName: 'guess',
         functionArgs: [uintCV(guessNum)],
-        senderKey: address,
         network,
-        anchorMode: AnchorMode.Any,
-        fee: 1000,
-      });
+        appDetails: {
+          name: 'Stacks Portal',
+          icon: window.location.origin + '/vite.svg',
+        },
+        onFinish: (data) => {
+          console.log('Transaction submitted:', data.txId);
+          setError('Palpite enviado! Verificando resultado...');
+          setGuessValue('');
+          setGameResult(null);
 
-      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
-      setIsExecuting(false);
-      return;
+          // Inicia o polling para verificar o resultado
+          startPolling(data.txId);
+        },
+        onCancel: () => {
+          setError('Transação cancelada pelo usuário.');
+        },
+      });
     } catch (err: any) {
       setError(err.message || 'Erro ao fazer palpite. Tente novamente.');
     } finally {
@@ -185,20 +317,27 @@ export function NumberGuessProGame() {
       const network = createNetwork('mainnet');
       const feeMicroStx = Math.floor(HINT_FEE * 1000000);
 
-      const transaction = await makeContractCall({
+      await openContractCall({
         contractAddress,
         contractName: numberGuessProContractName,
         functionName: 'get-hint',
         functionArgs: [uintCV(feeMicroStx)],
-        senderKey: address,
         network,
-        anchorMode: AnchorMode.Any,
-        fee: 1000,
+        appDetails: {
+          name: 'Stacks Portal',
+          icon: window.location.origin + '/vite.svg',
+        },
+        onFinish: (data) => {
+          console.log('Transaction submitted:', data.txId);
+          setError('Dica solicitada! Aguarde a confirmação na blockchain.');
+          setTimeout(() => {
+            fetchActiveGame();
+          }, 3000);
+        },
+        onCancel: () => {
+          setError('Transação cancelada pelo usuário.');
+        },
       });
-
-      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
-      setIsExecuting(false);
-      return;
     } catch (err: any) {
       setError(err.message || 'Erro ao obter dica. Tente novamente.');
     } finally {
@@ -218,20 +357,27 @@ export function NumberGuessProGame() {
     try {
       const network = createNetwork('mainnet');
 
-      const transaction = await makeContractCall({
+      await openContractCall({
         contractAddress,
         contractName: numberGuessProContractName,
         functionName: 'give-up',
         functionArgs: [],
-        senderKey: address,
         network,
-        anchorMode: AnchorMode.Any,
-        fee: 1000,
+        appDetails: {
+          name: 'Stacks Portal',
+          icon: window.location.origin + '/vite.svg',
+        },
+        onFinish: (data) => {
+          console.log('Transaction submitted:', data.txId);
+          setError('Desistência enviada! Aguarde a confirmação na blockchain.');
+          setTimeout(() => {
+            fetchActiveGame();
+          }, 3000);
+        },
+        onCancel: () => {
+          setError('Transação cancelada pelo usuário.');
+        },
       });
-
-      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
-      setIsExecuting(false);
-      return;
     } catch (err: any) {
       setError(err.message || 'Erro ao desistir. Tente novamente.');
     } finally {
@@ -324,6 +470,30 @@ export function NumberGuessProGame() {
         </div>
       )}
 
+      {pendingTxId && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-800 mb-1">
+                ⏳ Aguardando confirmação na blockchain...
+              </p>
+              <p className="text-xs text-blue-600">
+                Verificando resultado a cada 5 segundos
+              </p>
+              <a
+                href={`https://explorer.hiro.so/txid/${pendingTxId}?chain=mainnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-500 hover:text-blue-700 underline mt-1 inline-block"
+              >
+                Ver transação no explorer →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {gameResult && (
         <div className={`mb-4 p-4 rounded-lg border ${
           gameResult.result === 'correct' 
@@ -370,7 +540,7 @@ export function NumberGuessProGame() {
             setGuessValue(e.target.value);
             setError(null);
           }}
-          disabled={isExecuting || activeGame.attemptsLeft === 0}
+          disabled={isExecuting || activeGame.attemptsLeft === 0 || pendingTxId !== null}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           placeholder="Digite seu palpite"
         />
@@ -385,10 +555,10 @@ export function NumberGuessProGame() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         <button
           onClick={handleGuess}
-          disabled={isExecuting || activeGame.attemptsLeft === 0 || !guessValue}
+          disabled={isExecuting || activeGame.attemptsLeft === 0 || !guessValue || pendingTxId !== null}
           className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
         >
-          {isExecuting ? 'Processando...' : '🎯 Fazer Palpite'}
+          {isExecuting ? 'Processando...' : pendingTxId ? 'Aguardando...' : '🎯 Fazer Palpite'}
         </button>
         {canUseHint && (
           <button

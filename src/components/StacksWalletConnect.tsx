@@ -15,12 +15,7 @@ export function StacksWalletConnect() {
   const handleConnect = async () => {
     try {
       // New API v8: connect() returns addresses
-      const response = await connect({
-        appDetails: {
-          name: 'Stacks Portal',
-          icon: window.location.origin + '/vite.svg',
-        },
-      });
+      const response = await connect({});
       
       if (response && response.addresses && response.addresses.length > 0) {
         // Find Stacks address by symbol

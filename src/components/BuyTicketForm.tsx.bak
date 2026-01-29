@@ -86,14 +86,15 @@ export function BuyTicketForm() {
   onFinish: (data) => {
     console.log('Transaction submitted:', data.txId);
     setSuccess(true);
-    setIsExecuting(false);
-    setSuccess(true);
-  },
+
+
+                fetchUserTickets();
+  }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Implementar assinatura via AppKit
       
 
       // const signedTx = await signTransaction(transaction);

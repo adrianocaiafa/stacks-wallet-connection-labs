@@ -38,12 +38,12 @@ export function StartGameButton({ onStartSuccess }: { onStartSuccess?: () => voi
     console.log('Transaction submitted:', data.txId);
     setSuccess(true);
     if (onStartSuccess) onStartSuccess();
-  },
+  }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
       
 
       // const signedTx = await signTransaction(transaction);

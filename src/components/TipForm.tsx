@@ -68,11 +68,7 @@ export function TipForm({ recipientAddress }: TipFormProps) {
       //   anchorMode: AnchorMode.Any,
       //   fee: 1000,
       // };
-      // Use wallet.signTransaction() via WalletConnect session request
-
-      if (broadcastResponse.error) {
-        throw new Error(broadcastResponse.error);
-      }
+      // Transaction will be signed via wallet
 
       setSuccess(true);
       setAmount('');

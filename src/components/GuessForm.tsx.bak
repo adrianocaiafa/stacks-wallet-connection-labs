@@ -48,14 +48,14 @@ export function GuessForm({ onGuessSuccess }: { onGuessSuccess?: () => void }) {
   },
   onFinish: (data) => {
     console.log('Transaction submitted:', data.txId);
+    setSuccess(true);
     if (onGuessSuccess) onGuessSuccess();
-    setIsExecuting(false);
-  },
+  }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
       
 
       // const signedTx = await signTransaction(transaction);

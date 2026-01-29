@@ -110,12 +110,12 @@ export function QuestCard({ questType, title, description, fee, points, icon }: 
     setSuccess(true);
 
 
-              },
+              }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Implementar assinatura via AppKit
       
     } catch (err: any) {
       setError(err.message || 'Erro ao completar quest. Tente novamente.');

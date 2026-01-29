@@ -2,19 +2,19 @@ import { useState } from 'react';
 import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import {uintCV} from '@stacks/transactions';
-import { contractAddress, rockPaperScissorsContractName } from '../utils/contract';
+import { contractAddress, diceGameContractName } from '../utils/contract';
 import { openContractCall } from '@stacks/connect';
 
-export function ClaimGameRewardButton() {
+export function ClaimRewardButton() {
   const { isConnected, address } = useStacksWallet();
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [rewardData, setRewardData] = useState<{
     totalPoints: number;
-    totalGames: number;
+    totalRolls: number;
     wins: number;
-    winRate: number;
+    winStreak: number;
   } | null>(null);
 
   const CLAIM_FEE = 0.01; // 0.01 STX
@@ -35,25 +35,29 @@ export function ClaimGameRewardButton() {
       const feeMicroStx = Math.floor(CLAIM_FEE * 1000000);
 
       await openContractCall({
-        contractAddress,
-        contractName: rockPaperScissorsContractName,
-        functionName: 'claim-game-reward',
-        functionArgs: [uintCV(feeMicroStx)],
-        network: network,
-        appDetails: {
-          name: 'Stacks Portal',
-          icon: window.location.origin + '/vite.svg',
-        },
-        onFinish: (data) => {
-          console.log('Transaction submitted:', data.txId);
-          setSuccess(true);
-          setIsExecuting(false);
-        },
-        onCancel: () => {
-          console.log('Transaction cancelled');
-          setIsExecuting(false);
-        },
-      });
+  contractAddress,
+  contractName: diceGameContractName,
+  functionName: 'claim-dice-reward',
+  functionArgs: [uintCV(feeMicroStx)],
+  network: network,
+  appDetails: {
+    name: 'Stacks Portal',
+    icon: window.location.origin + '/vite.svg',
+  },
+  onFinish: (data) => {
+    console.log('Transaction submitted:', data.txId);
+    setSuccess(true);
+
+
+              }},
+  onCancel: () => {
+    console.log('Transaction cancelled');
+    setIsExecuting(false);
+  },
+});// TODO: Integrate with AppKit's signTransaction method
+      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
+      setIsExecuting(null);
+      return;
 
       // const signedTx = await signTransaction(transaction);
       // const broadcastResponse = await broadcastTransaction(signedTx, network);
@@ -66,9 +70,9 @@ export function ClaimGameRewardButton() {
       // const result = broadcastResponse.result;
       // setRewardData({
       //   totalPoints: result.totalPoints,
-      //   totalGames: result.totalGames,
+      //   totalRolls: result.totalRolls,
       //   wins: result.wins,
-      //   winRate: result.winRate,
+      //   winStreak: result.winStreak,
       // });
 
       // setSuccess(true);
@@ -112,9 +116,9 @@ export function ClaimGameRewardButton() {
             <p className="text-green-800 font-semibold mb-2">🎉 Recompensa reivindicada!</p>
             <div className="text-sm text-green-700 space-y-1">
               <p>Total de pontos: <span className="font-bold">{rewardData.totalPoints}</span></p>
-              <p>Total de jogos: <span className="font-bold">{rewardData.totalGames}</span></p>
+              <p>Total de rolagens: <span className="font-bold">{rewardData.totalRolls}</span></p>
               <p>Vitórias: <span className="font-bold">{rewardData.wins}</span></p>
-              <p>Taxa de vitória: <span className="font-bold">{rewardData.winRate}%</span></p>
+              <p>Sequência atual: <span className="font-bold">{rewardData.winStreak}</span></p>
             </div>
           </div>
         )}

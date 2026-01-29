@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
-import { makeContractCall, broadcastTransaction, AnchorMode, uintCV } from '@stacks/transactions';
+import {uintCV} from '@stacks/transactions';
 import { contractAddress, coinFlipContractName } from '../utils/contract';
+import { openContractCall } from '@stacks/connect';
 
 export function CoinFlipForm() {
   const { isConnected, address } = useStacksWallet();
@@ -43,21 +44,28 @@ export function CoinFlipForm() {
       const feeMicroStx = Math.floor(FLIP_FEE * 1000000);
       const userChoice = selectedChoice === 'heads' ? HEADS : TAILS;
 
-      const transaction = await makeContractCall({
-        contractAddress,
-        contractName: coinFlipContractName,
-        functionName: 'flip-coin',
-        functionArgs: [uintCV(userChoice), uintCV(feeMicroStx)],
-        senderKey: address,
-        network,
-        anchorMode: AnchorMode.Any,
-        fee: 1000,
-      });
+      await openContractCall({
+  contractAddress,
+  contractName: coinFlipContractName,
+  functionName: 'flip-coin',
+  functionArgs: [uintCV(userChoice), uintCV(feeMicroStx)],
+  network: network,
+  appDetails: {
+    name: 'Stacks Portal',
+    icon: window.location.origin + '/vite.svg',
+  },
+  onFinish: (data) => {
+    console.log('Transaction submitted:', data.txId);
+    setSuccess(true);
 
-      // TODO: Integrate with AppKit's signTransaction method
-      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
-      setIsExecuting(false);
-      return;
+
+              },
+  onCancel: () => {
+    console.log('Transaction cancelled');
+    setIsExecuting(false);
+  },
+});
+      
 
       // const signedTx = await signTransaction(transaction);
       // const broadcastResponse = await broadcastTransaction(signedTx, network);

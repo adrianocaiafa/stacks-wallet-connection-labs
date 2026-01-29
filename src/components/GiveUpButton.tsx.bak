@@ -45,14 +45,18 @@ export function GiveUpButton({ onGiveUpSuccess }: { onGiveUpSuccess?: () => void
   },
   onFinish: (data) => {
     console.log('Transaction submitted:', data.txId);
+    setSuccess(true);
     if (onGiveUpSuccess) onGiveUpSuccess();
-    setIsExecuting(false);
-  },
+  }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
+      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
+      setIsExecuting(false);
+      setShowConfirm(false);
+      return;
 
       // const signedTx = await signTransaction(transaction);
       // const broadcastResponse = await broadcastTransaction(signedTx, network);

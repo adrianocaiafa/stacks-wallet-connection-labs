@@ -44,14 +44,15 @@ export function HintButton({ onHintSuccess }: { onHintSuccess?: () => void }) {
   },
   onFinish: (data) => {
     console.log('Transaction submitted:', data.txId);
-    if (onHintSuccess) onHintSuccess();
-    setIsExecuting(false);
-  },
+    setSuccess(true);
+
+
+              }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
       
 
       // const signedTx = await signTransaction(transaction);

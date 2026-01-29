@@ -2,34 +2,35 @@ import { useState } from 'react';
 import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import {uintCV} from '@stacks/transactions';
-import { contractAddress, diceGameContractName } from '../utils/contract';
+import { contractAddress, coinFlipContractName } from '../utils/contract';
 import { openContractCall } from '@stacks/connect';
 
-export function DiceRollForm() {
+export function CoinFlipForm() {
   const { isConnected, address } = useStacksWallet();
-  const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
+  const [selectedChoice, setSelectedChoice] = useState<'heads' | 'tails' | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [lastResult, setLastResult] = useState<{
-    userChoice: number;
-    diceResult: number;
+    userChoice: string;
+    coinResult: string;
     won: boolean;
     pointsEarned: number;
     winStreak: number;
   } | null>(null);
 
-  const DICE_FEE = 0.01; // 0.01 STX
-  const DICE_NUMBERS = [1, 2, 3, 4, 5, 6];
+  const FLIP_FEE = 0.005; // 0.005 STX
+  const HEADS = 0;
+  const TAILS = 1;
 
-  const handleRoll = async () => {
+  const handleFlip = async () => {
     if (!isConnected || !address) {
       setError('Por favor, conecte sua carteira primeiro');
       return;
     }
 
-    if (selectedNumber === null) {
-      setError('Por favor, escolha um número de 1 a 6');
+    if (selectedChoice === null) {
+      setError('Por favor, escolha Cara ou Coroa');
       return;
     }
 
@@ -40,13 +41,14 @@ export function DiceRollForm() {
 
     try {
       const network = createNetwork('mainnet');
-      const feeMicroStx = Math.floor(DICE_FEE * 1000000);
+      const feeMicroStx = Math.floor(FLIP_FEE * 1000000);
+      const userChoice = selectedChoice === 'heads' ? HEADS : TAILS;
 
       await openContractCall({
   contractAddress,
-  contractName: diceGameContractName,
-  functionName: 'roll-dice',
-  functionArgs: [uintCV(selectedNumber), uintCV(feeMicroStx)],
+  contractName: coinFlipContractName,
+  functionName: 'flip-coin',
+  functionArgs: [uintCV(userChoice), uintCV(feeMicroStx)],
   network: network,
   appDetails: {
     name: 'Stacks Portal',
@@ -57,12 +59,12 @@ export function DiceRollForm() {
     setSuccess(true);
 
 
-              },
+              }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
       
 
       // const signedTx = await signTransaction(transaction);
@@ -75,8 +77,8 @@ export function DiceRollForm() {
       // // Parse result from transaction
       // const result = broadcastResponse.result;
       // setLastResult({
-      //   userChoice: selectedNumber,
-      //   diceResult: result.diceResult,
+      //   userChoice: selectedChoice === 'heads' ? 'Cara' : 'Coroa',
+      //   coinResult: result.coinResult === 0 ? 'Cara' : 'Coroa',
       //   won: result.won,
       //   pointsEarned: result.pointsEarned,
       //   winStreak: result.winStreak,
@@ -85,10 +87,10 @@ export function DiceRollForm() {
       // setSuccess(true);
       // setTimeout(() => {
       //   setSuccess(false);
-      //   setSelectedNumber(null);
+      //   setSelectedChoice(null);
       // }, 5000);
     } catch (err: any) {
-      setError(err.message || 'Erro ao rolar o dado. Tente novamente.');
+      setError(err.message || 'Erro ao jogar a moeda. Tente novamente.');
     } finally {
       setIsExecuting(false);
     }
@@ -105,31 +107,44 @@ export function DiceRollForm() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="text-center">
-        <div className="text-5xl mb-4">🎲</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Rolar Dado</h3>
+        <div className="text-5xl mb-4">🪙</div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Jogar Moeda</h3>
         <p className="text-gray-600 text-sm mb-4">
-          Escolha um número de 1 a 6. Se o dado cair no seu número, você ganha 10 pontos!
+          Escolha Cara ou Coroa. Se acertar, você ganha 5 pontos!
         </p>
-        <p className="text-lg font-bold text-blue-600 mb-6">{DICE_FEE} STX por rolagem</p>
+        <p className="text-lg font-bold text-blue-600 mb-6">{FLIP_FEE} STX por jogada</p>
 
-        <div className="grid grid-cols-6 gap-2 mb-6">
-          {DICE_NUMBERS.map((num) => (
-            <button
-              key={num}
-              onClick={() => {
-                setSelectedNumber(num);
-                setError(null);
-              }}
-              disabled={isExecuting}
-              className={`px-4 py-3 rounded-lg font-bold text-lg transition ${
-                selectedNumber === num
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {num}
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <button
+            onClick={() => {
+              setSelectedChoice('heads');
+              setError(null);
+            }}
+            disabled={isExecuting}
+            className={`px-6 py-8 rounded-lg font-bold text-xl transition ${
+              selectedChoice === 'heads'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <div className="text-4xl mb-2">👤</div>
+            <div>Cara</div>
+          </button>
+          <button
+            onClick={() => {
+              setSelectedChoice('tails');
+              setError(null);
+            }}
+            disabled={isExecuting}
+            className={`px-6 py-8 rounded-lg font-bold text-xl transition ${
+              selectedChoice === 'tails'
+                ? 'bg-indigo-500 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <div className="text-4xl mb-2">🪙</div>
+            <div>Coroa</div>
+          </button>
         </div>
 
         {error && (
@@ -145,7 +160,7 @@ export function DiceRollForm() {
             </p>
             <div className="text-sm text-green-700 space-y-1">
               <p>Sua escolha: <span className="font-bold">{lastResult.userChoice}</span></p>
-              <p>Resultado do dado: <span className="font-bold">{lastResult.diceResult}</span></p>
+              <p>Resultado da moeda: <span className="font-bold">{lastResult.coinResult}</span></p>
               {lastResult.won && (
                 <p className="font-semibold">+{lastResult.pointsEarned} pontos ganhos!</p>
               )}
@@ -155,14 +170,13 @@ export function DiceRollForm() {
         )}
 
         <button
-          onClick={handleRoll}
-          disabled={isExecuting || selectedNumber === null}
-          className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+          onClick={handleFlip}
+          disabled={isExecuting || selectedChoice === null}
+          className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
         >
-          {isExecuting ? 'Rolando...' : 'Rolar Dado 🎲'}
+          {isExecuting ? 'Jogando...' : 'Jogar Moeda 🪙'}
         </button>
       </div>
     </div>
   );
 }
-

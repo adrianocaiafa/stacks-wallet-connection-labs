@@ -2,22 +2,23 @@ import { useState } from 'react';
 import { useStacksWallet } from '../hooks/useStacksWallet';
 import { createNetwork } from '@stacks/network';
 import {uintCV} from '@stacks/transactions';
-import { contractAddress, rockPaperScissorsContractName } from '../utils/contract';
+import { contractAddress, coinFlipContractName } from '../utils/contract';
 import { openContractCall } from '@stacks/connect';
 
-export function ClaimGameRewardButton() {
+export function ClaimFlipRewardButton() {
   const { isConnected, address } = useStacksWallet();
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [rewardData, setRewardData] = useState<{
     totalPoints: number;
-    totalGames: number;
+    totalFlips: number;
     wins: number;
-    winRate: number;
+    winStreak: number;
+    longestStreak: number;
   } | null>(null);
 
-  const CLAIM_FEE = 0.01; // 0.01 STX
+  const CLAIM_FEE = 0.005; // 0.005 STX
 
   const handleClaim = async () => {
     if (!isConnected || !address) {
@@ -35,25 +36,27 @@ export function ClaimGameRewardButton() {
       const feeMicroStx = Math.floor(CLAIM_FEE * 1000000);
 
       await openContractCall({
-        contractAddress,
-        contractName: rockPaperScissorsContractName,
-        functionName: 'claim-game-reward',
-        functionArgs: [uintCV(feeMicroStx)],
-        network: network,
-        appDetails: {
-          name: 'Stacks Portal',
-          icon: window.location.origin + '/vite.svg',
-        },
-        onFinish: (data) => {
-          console.log('Transaction submitted:', data.txId);
-          setSuccess(true);
-          setIsExecuting(false);
-        },
-        onCancel: () => {
-          console.log('Transaction cancelled');
-          setIsExecuting(false);
-        },
-      });
+  contractAddress,
+  contractName: coinFlipContractName,
+  functionName: 'claim-flip-reward',
+  functionArgs: [uintCV(feeMicroStx)],
+  network: network,
+  appDetails: {
+    name: 'Stacks Portal',
+    icon: window.location.origin + '/vite.svg',
+  },
+  onFinish: (data) => {
+    console.log('Transaction submitted:', data.txId);
+    setSuccess(true);
+
+
+              }},
+  onCancel: () => {
+    console.log('Transaction cancelled');
+    setIsExecuting(false);
+  },
+});// TODO: Integrate with AppKit's signTransaction method
+      
 
       // const signedTx = await signTransaction(transaction);
       // const broadcastResponse = await broadcastTransaction(signedTx, network);
@@ -66,9 +69,10 @@ export function ClaimGameRewardButton() {
       // const result = broadcastResponse.result;
       // setRewardData({
       //   totalPoints: result.totalPoints,
-      //   totalGames: result.totalGames,
+      //   totalFlips: result.totalFlips,
       //   wins: result.wins,
-      //   winRate: result.winRate,
+      //   winStreak: result.winStreak,
+      //   longestStreak: result.longestStreak,
       // });
 
       // setSuccess(true);
@@ -112,9 +116,10 @@ export function ClaimGameRewardButton() {
             <p className="text-green-800 font-semibold mb-2">🎉 Recompensa reivindicada!</p>
             <div className="text-sm text-green-700 space-y-1">
               <p>Total de pontos: <span className="font-bold">{rewardData.totalPoints}</span></p>
-              <p>Total de jogos: <span className="font-bold">{rewardData.totalGames}</span></p>
+              <p>Total de jogadas: <span className="font-bold">{rewardData.totalFlips}</span></p>
               <p>Vitórias: <span className="font-bold">{rewardData.wins}</span></p>
-              <p>Taxa de vitória: <span className="font-bold">{rewardData.winRate}%</span></p>
+              <p>Sequência atual: <span className="font-bold">{rewardData.winStreak}</span></p>
+              <p>Maior sequência: <span className="font-bold">{rewardData.longestStreak}</span></p>
             </div>
           </div>
         )}
@@ -122,7 +127,7 @@ export function ClaimGameRewardButton() {
         <button
           onClick={handleClaim}
           disabled={isExecuting}
-          className="w-full px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
+          className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
         >
           {isExecuting ? 'Processando...' : 'Reivindicar Recompensa 🎁'}
         </button>
@@ -130,4 +135,3 @@ export function ClaimGameRewardButton() {
     </div>
   );
 }
-

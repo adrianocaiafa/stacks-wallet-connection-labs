@@ -112,14 +112,17 @@ export function MilestoneClaims() {
   },
   onFinish: (data) => {
     console.log('Transaction submitted:', data.txId);
-    fetchMilestoneStatus();
-    setExecuting(null);
-  },
+    setSuccess(true);
+
+
+              }},
   onCancel: () => {
     console.log('Transaction cancelled');
-    setExecuting(null);
+    setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
+      setError('Assinatura de transação via AppKit será implementada. Por enquanto, o envio direto não está ativo.');
+      setExecuting(null);
       return;
 
       // const signedTx = await signTransaction(transaction);

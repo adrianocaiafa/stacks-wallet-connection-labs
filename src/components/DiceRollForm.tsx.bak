@@ -57,12 +57,12 @@ export function DiceRollForm() {
     setSuccess(true);
 
 
-              },
+              }},
   onCancel: () => {
     console.log('Transaction cancelled');
     setIsExecuting(false);
   },
-});
+});// TODO: Integrate with AppKit's signTransaction method
       
 
       // const signedTx = await signTransaction(transaction);
