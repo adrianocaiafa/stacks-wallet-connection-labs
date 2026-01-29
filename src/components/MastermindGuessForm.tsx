@@ -126,9 +126,11 @@ export function MastermindGuessForm({ onGuessSuccess }: { onGuessSuccess?: () =>
           // Atualiza a UI com o resultado
           setLastResult(result);
 
-          // Chama callback de sucesso
+          // Chama callback de sucesso após um pequeno delay para garantir que o histórico tenha os dados
           if (onGuessSuccess) {
-            onGuessSuccess();
+            setTimeout(() => {
+              onGuessSuccess();
+            }, 1000);
           }
 
           setError(null);

@@ -109,7 +109,10 @@ export function MastermindAttemptHistory() {
   }, [isConnected, address]);
 
   useEffect(() => {
-    const handler = () => fetchHistory();
+    const handler = () => {
+      console.log('Mastermind refresh event received, updating history...');
+      fetchHistory();
+    };
     window.addEventListener('mastermind-refresh', handler);
     return () => window.removeEventListener('mastermind-refresh', handler);
   }, [isConnected, address]);
@@ -125,12 +128,18 @@ export function MastermindAttemptHistory() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold text-gray-900">Histórico de Tentativas</h3>
+        <h3 className="text-xl font-semibold text-gray-900">
+          Histórico de Tentativas
+          {loading && attempts.length > 0 && (
+            <span className="ml-2 text-sm text-gray-500">(atualizando...)</span>
+          )}
+        </h3>
         <button
           onClick={fetchHistory}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+          disabled={loading}
+          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          🔄 Atualizar
+          {loading ? '⏳' : '🔄'} Atualizar
         </button>
       </div>
 
@@ -142,20 +151,41 @@ export function MastermindAttemptHistory() {
         </p>
       ) : (
         <div className="space-y-3">
-          {attempts.map((a) => (
-            <div
-              key={a.attemptNum}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-            >
-              <span className="font-medium text-gray-700">#{a.attemptNum}</span>
-              <span className="font-mono text-lg">{a.code.join(' ')}</span>
-              <span className="text-sm">
-                <span className="text-green-600 font-semibold">{a.exactMatches} exatas</span>
-                {' · '}
-                <span className="text-amber-600 font-semibold">{a.partialMatches} parciais</span>
-              </span>
-            </div>
-          ))}
+          {attempts.map((a, index) => {
+            const isLatest = index === attempts.length - 1;
+            return (
+              <div
+                key={a.attemptNum}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                  isLatest
+                    ? 'bg-indigo-50 border-indigo-300 shadow-sm'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <span className={`font-medium ${isLatest ? 'text-indigo-700' : 'text-gray-700'}`}>
+                  #{a.attemptNum}
+                  {isLatest && <span className="ml-2 text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full">Última</span>}
+                </span>
+                <div className="flex gap-2">
+                  {a.code.map((digit, i) => (
+                    <div
+                      key={i}
+                      className={`w-8 h-8 flex items-center justify-center rounded font-mono font-bold text-sm ${
+                        isLatest ? 'bg-indigo-200 text-indigo-900' : 'bg-gray-200 text-gray-800'
+                      }`}
+                    >
+                      {digit}
+                    </div>
+                  ))}
+                </div>
+                <span className="text-sm">
+                  <span className="text-green-600 font-semibold">{a.exactMatches} exatas</span>
+                  {' · '}
+                  <span className="text-amber-600 font-semibold">{a.partialMatches} parciais</span>
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
