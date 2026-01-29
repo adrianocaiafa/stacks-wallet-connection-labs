@@ -4,6 +4,7 @@ import { HiddenFormulaStartGame } from '../components/HiddenFormulaStartGame';
 import { HiddenFormulaTestInput } from '../components/HiddenFormulaTestInput';
 import { HiddenFormulaSubmitFormula } from '../components/HiddenFormulaSubmitFormula';
 import { HiddenFormulaGiveUp } from '../components/HiddenFormulaGiveUp';
+import { HiddenFormulaTestHistory } from '../components/HiddenFormulaTestHistory';
 
 export function HiddenFormula() {
   const refresh = () => {
@@ -35,6 +36,9 @@ export function HiddenFormula() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <HiddenFormulaSubmitFormula onSubmitSuccess={refresh} />
           <HiddenFormulaGiveUp onGiveUpSuccess={refresh} />
+        </div>
+        <div className="mt-6">
+          <HiddenFormulaTestHistory />
         </div>
       </div>
     </div>
