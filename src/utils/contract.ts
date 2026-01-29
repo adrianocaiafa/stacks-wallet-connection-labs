@@ -36,5 +36,5 @@ export const numberGuessZenContractName = 'number-guess-zen';
 export const numberGuessProContractName = 'number-guess-pro';
 
 // Mastermind contract
-export const mastermindContractName = 'mastermind';
+export const mastermindContractName = 'mastermind-v2';
 
